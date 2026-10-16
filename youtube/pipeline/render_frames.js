@@ -17,6 +17,8 @@ const { chromium } = require('playwright');
     const url = 'file://' + path.resolve(job.html);
     await page.goto(url, { waitUntil: 'load' });
     await page.evaluate(() => document.fonts.ready);
+    // スタイル計算とアニメの登録が終わるまで 2 コマ待つ（直後に撮ると出現アニメの要素が消えることがある）
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r()))));
     const fps = job.fps || 30;
     const n = Math.max(1, job.frames | 0);
     for (let i = 0; i < n; i++) {

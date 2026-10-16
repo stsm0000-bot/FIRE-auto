@@ -320,6 +320,7 @@ html[data-kind="short"] .scene .photo img,html[data-kind="short"] .scene .photo 
   const ease = t => t<0?0:t>1?1:1-Math.pow(1-t,3);
   const fmt = (v, dec) => v.toLocaleString('ja-JP',{minimumFractionDigits:dec,maximumFractionDigits:dec});
   window.__seek = function(ms){
+    void document.body.offsetHeight;   // スタイルを確定させてからアニメを拾う
     document.getAnimations().forEach(a => { a.pause(); a.currentTime = ms; });
     document.querySelectorAll('[data-count-to]').forEach(el => {
       const from = +el.dataset.countFrom || 0, to = +el.dataset.countTo, dur = +el.dataset.countDur || 1800, delay = +el.dataset.countDelay || 200;

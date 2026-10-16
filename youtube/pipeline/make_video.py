@@ -44,6 +44,9 @@ ANIM_SEC = {            # 状態が変わったとき、何秒ぶんコマ撮り
     "ending": 0.9, "counter": 2.3, "portfolio": 2.4, "timeline": 0.9, "photo": 0.9, "scene": 1.3, "clip": 0.0,
 }
 MOUTH_STEP = 0.11       # 物語シーンの口パク: 開/閉を切り替える間隔（秒）
+SE_GAIN_DB = {"door": -6, "shock": -6, "hammer": -6, "riser": -3, "reveal": -2}   # 効果音ごとの音量差（品質部: 打撃音が声と同じ高さだった）
+SE_DEDUPE_SEC = 0.35    # 同じ効果音がこの秒数以内に重なったら 1 回にする（mark と step の 2 連打を防ぐ）
+AMB_FADE_SEC = 1.5      # 環境音の出入りのフェード
 BLINK_EVERY, BLINK_LEN = 3.7, 0.13   # まばたきの周期と長さ（秒）
 SCENE_SFX_AUTO = {      # 物語シーンで自動で鳴らす効果音（場面の頭）。台本の sfx: で上書き
     "bg": {"office": "door", "bankbook": "cash", "site": "hammer", "bank": "door"},
@@ -598,14 +601,37 @@ def tts_line(mode: str, doc: dict, ln: Line, out: Path):
     v = doc["voice"]
     tts_voicevox(ln.text, sid, out, float(ln.speed or v["speed"]), float(ln.intonation or v["intonation"]), float(v["pitch"]))
 
-def concat_wavs(parts: list[tuple[Path, float]], out: Path):
-    """parts = [(wav, 後ろに足す無音秒)] を 1 本の wav に"""
+def read_wav(p: Path) -> np.ndarray:
+    with wave.open(str(p), "rb") as r:
+        assert r.getframerate() == SR and r.getnchannels() == 1, f"{p}: 24kHz mono が必要"
+        return np.frombuffer(r.readframes(r.getnframes()), dtype=np.int16).astype(np.float64) / 32768.0
+
+def speaker_gains(parts: list[tuple[Path, float, str]], doc: dict) -> dict[str, float]:
+    """話者ごとの声の大きさ（RMS）を揃える倍率。いちばん大きい話者に合わせる（上げ幅は +6 dB まで）。speakers の gain_db を上乗せ"""
+    acc: dict[str, list[float]] = {}
+    for p, _, sp in parts:
+        if sp:
+            x = read_wav(p); x = x[np.abs(x) > 0.01]   # 無音は除く
+            if len(x): acc.setdefault(sp, []).append(float(np.mean(x * x)) if len(x) else 0.0)
+    rms = {sp: math.sqrt(sum(v) / len(v)) for sp, v in acc.items() if v}
+    if not rms:
+        return {}
+    target = max(rms.values())
+    gains = {}
+    for sp, r in rms.items():
+        g = min(target / max(r, 1e-6), 10 ** (6 / 20))
+        g *= 10 ** (float(doc["speakers"].get(sp, {}).get("gain_db", 0)) / 20)
+        gains[sp] = g
+    return gains
+
+def concat_wavs(parts: list[tuple[Path, float, str]], out: Path, gains: dict[str, float] | None = None):
+    """parts = [(wav, 後ろに足す無音秒, 話者)] を 1 本の wav に（話者ごとの倍率を掛ける）"""
+    gains = gains or {}
     with wave.open(str(out), "wb") as w:
         w.setnchannels(1); w.setsampwidth(2); w.setframerate(SR)
-        for p, pause in parts:
-            with wave.open(str(p), "rb") as r:
-                assert r.getframerate() == SR and r.getnchannels() == 1, f"{p}: 24kHz mono が必要"
-                w.writeframes(r.readframes(r.getnframes()))
+        for p, pause, sp in parts:
+            x = read_wav(p) * gains.get(sp, 1.0)
+            w.writeframes((np.clip(x, -1, 1) * 32767).astype(np.int16).tobytes())
             w.writeframes(b"\x00\x00" * int(pause * SR))
 
 # ---------------------------------------------------------------- 字幕
@@ -695,6 +721,8 @@ def build(script: Path, out_dir: Path, tts_mode: str, bgm: Path | None, bgm_db: 
     hide_iv: list[tuple[float, float]] = []    # 物語シーン・映像クリップの間は隅のキャラを隠す
     amb_events: list[tuple[float, float, str]] = []   # (開始, 終了, 環境音名)
     clip_scenes: dict[str, dict] = {}          # clip 場面 → {src, start, dur}
+    if doc.get("jingle", True) and doc["kind"] == "long":
+        se_events.append((0.0, "jingle_open"))
     for sc in doc["_scenes"]:
         if sc.layout == "chapter":
             chapter_idx = sc.chapter_no
@@ -759,7 +787,7 @@ def build(script: Path, out_dir: Path, tts_mode: str, bgm: Path | None, bgm_db: 
                 newn = max(0, ln.step - ln.prev_step)
                 if L == "chapter": se_events += [(t - 0.3, "riser"), (t + 0.05, "reveal")]
                 elif L == "title": se_events.append((t + 0.05, "whoosh"))
-                elif L == "ending": se_events.append((t + 0.1, "sparkle"))
+                elif L == "ending": se_events.append((t + 0.05, "jingle_end" if doc.get("jingle", True) else "sparkle"))
                 elif L == "counter":
                     cd = float(sc.data.get("dur", 2.0))
                     se_events.append((t - 0.2, "riser"))
@@ -788,7 +816,7 @@ def build(script: Path, out_dir: Path, tts_mode: str, bgm: Path | None, bgm_db: 
                 pl["clip_off"] = t - scene_start
                 pl["headline"] = sc.data.get("headline")
             plan.append(pl)
-            audio_parts.append((wav, pause)); t += dur + pause
+            audio_parts.append((wav, pause, ln.sp if ln.text else "")); t += dur + pause
             last_key = key
         if sc.layout == "clip":
             clip_scenes[sc.id]["dur"] = t - scene_start
@@ -864,11 +892,19 @@ def build(script: Path, out_dir: Path, tts_mode: str, bgm: Path | None, bgm_db: 
         cs["frames"] = comp
 
     print("[3/5] 音声を 1 本に / 字幕 (ASS)")
-    voice = work / "voice.wav"; concat_wavs(audio_parts, voice)
+    gains = speaker_gains(audio_parts, doc) if tts_mode != "stub" else {}
+    if gains: print("      話者の音量合わせ: " + ", ".join(f"{doc['speakers'][k].get('name', k)} {20*math.log10(v):+.1f} dB" for k, v in gains.items()))
+    voice = work / "voice.wav"; concat_wavs(audio_parts, voice, gains)
     write_ass(doc, sub_events, work / "subs.ass")
     se_track = np.zeros(int((total + 1) * SR))
     if doc.get("sfx", True):
         clips: dict[str, np.ndarray | None] = {}
+        kept: list[tuple[float, str]] = []
+        for at, name in sorted(se_events):
+            if any(n == name and abs(a - at) < SE_DEDUPE_SEC for a, n in kept[-6:]):
+                continue
+            kept.append((at, name))
+        se_events = kept
         for at, name in se_events:
             if name not in clips:
                 try:
@@ -877,6 +913,7 @@ def build(script: Path, out_dir: Path, tts_mode: str, bgm: Path | None, bgm_db: 
                     clips[name] = None; print(f"      注意: 効果音 {name} が無いので鳴らしません")
             c = clips[name]
             if c is None: continue
+            c = c * (10 ** (SE_GAIN_DB.get(name, 0) / 20))
             st = int(max(0.0, at) * SR)
             if st + len(c) < len(se_track): se_track[st:st + len(c)] += c
     audio_synth.write_wav(work / "se.wav", se_track * 0.6)
@@ -916,6 +953,10 @@ def build(script: Path, out_dir: Path, tts_mode: str, bgm: Path | None, bgm_db: 
             z = JUMP_ZOOMS[pl["same_run"] % len(JUMP_ZOOMS)] if pl["same_run"] > 0 else 1.0
             hold = {v: zoomed(p.with_suffix(".png"), z) for v, p in pl["hold"].items()}
             n_anim = pl["nframes"] if pl["nframes"] > 1 else 0
+            if n_anim:   # 動きの最終コマを保持画にする（静止撮りで出現アニメが落ちることがある）
+                hold["closed"] = zoomed(prefix.parent / f"{prefix.name}_{n_anim-1:04d}.png", z)
+                if pl.get("prefix_open_anim") is not None:
+                    po_ = pl["prefix_open_anim"]; hold["open"] = zoomed(po_.parent / f"{po_.name}_{n_anim-1:04d}.png", z)
             n_anim = min(n_anim, max(0, int(pl["dur"] * FPS) - 1))
             po = pl.get("prefix_open_anim")
             for i in range(n_anim):
@@ -965,12 +1006,27 @@ def build(script: Path, out_dir: Path, tts_mode: str, bgm: Path | None, bgm_db: 
                     else:
                         Image.blend(a, b, k / (nxf + 1)).save(f)
                 frames_txt.append((f, 1 / FPS))
+            cut = nxf / FPS     # クロスフェードのぶんだけ、この台詞の表示を前から削る（音とのズレを作らない）
+            while cut > 1e-6 and disp:
+                f0, s0 = disp[0]
+                if s0 <= cut + 1e-6:
+                    cut -= s0; disp.pop(0)
+                else:
+                    disp[0] = (f0, s0 - cut); cut = 0.0
+            if not disp:
+                disp = [(seq[0], 0.04)]
         for f, sec in disp:
             if frames_txt and frames_txt[-1][0] == f:
                 frames_txt[-1] = (f, frames_txt[-1][1] + sec)
             else:
                 frames_txt.append((f, sec))
         prev_png = disp[-1][0]; prev_scene = pl["scene"]
+    vsum = sum(d for _, d in frames_txt)
+    if abs(vsum - total) > 0.1:
+        warnings.append(f"画の合計 {vsum:.2f} 秒と音の長さ {total:.2f} 秒がずれている（差 {vsum - total:+.2f} 秒）")
+        print("      警告:", warnings[-1])
+    else:
+        print(f"      画の合計 {vsum:.2f} 秒 ＝ 音 {total:.2f} 秒（差 {vsum - total:+.3f} 秒）")
     concat = work / "frames.txt"
     with concat.open("w", encoding="utf-8") as f:
         for p, d in frames_txt:
@@ -1040,10 +1096,10 @@ def build(script: Path, out_dir: Path, tts_mode: str, bgm: Path | None, bgm_db: 
         for i, (a, b, name) in enumerate(amb_events):
             sec = b - a
             try:
-                clip = np.asarray(amb_fn(name, sec + 0.5, seed=i + 1), dtype=float)[: int((sec + 0.4) * SR)]
+                clip = np.asarray(amb_fn(name, sec + AMB_FADE_SEC + 0.5, seed=i + 1), dtype=float)[: int((sec + AMB_FADE_SEC) * SR)]
             except Exception as e:   # 未対応の名前など
                 print(f"      注意: 環境音 {name} を作れません ({e})"); continue
-            fade = int(0.4 * SR); env = np.ones(len(clip))
+            fade = int(min(AMB_FADE_SEC, sec / 2) * SR); env = np.ones(len(clip))
             env[:fade] = np.linspace(0, 1, fade); env[-fade:] = np.linspace(1, 0, fade)
             st = int(a * SR); en = min(len(amb_track), st + len(clip))
             amb_track[st:en] += (clip * env)[: en - st]
@@ -1052,9 +1108,9 @@ def build(script: Path, out_dir: Path, tts_mode: str, bgm: Path | None, bgm_db: 
     run(["ffmpeg", "-y", "-i", str(voice), "-stream_loop", "-1", "-i", str(Path(bgm).resolve()), "-i", str(work / "se.wav"), "-i", str(work / "amb.wav"),
          "-filter_complex",
          f"[1:a]aformat=sample_rates={SR}:channel_layouts=mono,volume={bgm_db}dB,atrim=0:{total:.3f},afade=t=out:st={max(0,total-2):.2f}:d=2[bg];"
-         f"[bg][0:a]sidechaincompress=threshold=0.02:ratio=8:attack=20:release=600:makeup=1[duck];"
-         f"[2:a]aformat=sample_rates={SR}:channel_layouts=mono,volume={doc.get('sfx_db', -10)}dB[se];"
-         f"[3:a]aformat=sample_rates={SR}:channel_layouts=mono,volume={doc.get('amb_db', 0)}dB[amb];"
+         f"[bg][0:a]sidechaincompress=threshold=0.06:ratio=3:attack=20:release=500:makeup=1[duck];"
+         f"[2:a]aformat=sample_rates={SR}:channel_layouts=mono,volume={doc.get('sfx_db', -16)}dB[se];"
+         f"[3:a]aformat=sample_rates={SR}:channel_layouts=mono,volume={doc.get('amb_db', -12)}dB[amb];"
          f"[0:a][duck][se][amb]amix=inputs=4:duration=first:normalize=0[mix]",
          "-map", "[mix]", "-ac", "1", str(mix)], cwd=work)
     meas = subprocess.run(["ffmpeg", "-i", str(mix), "-af", "loudnorm=I=-14:TP=-1.5:LRA=11:print_format=json", "-f", "null", "-"],
@@ -1155,7 +1211,7 @@ def main():
     b.add_argument("script"); b.add_argument("--out", required=True)
     b.add_argument("--tts", choices=["voicevox", "stub"], default="voicevox")
     b.add_argument("--bgm", default=str(HERE / "assets" / "bgm.mp3"), help="BGM ファイル（無ければ自前合成の BGM）")
-    b.add_argument("--bgm-db", type=float, default=-22.0, help="BGM の音量（dB、負の値）")
+    b.add_argument("--bgm-db", type=float, default=-16.0, help="BGM の音量（dB、負の値）")
     q = sub.add_parser("qa", help="出来上がりを検査する")
     q.add_argument("mp4")
     a = ap.parse_args()
