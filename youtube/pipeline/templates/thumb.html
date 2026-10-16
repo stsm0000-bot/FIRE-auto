@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:{{W}}px;height:{{H}}px;overflow:hidden;background:#F6F2EA;
+  font-family:"{{FONT}}","Noto Sans JP","BIZ UDPGothic","Meiryo","IPAPGothic",sans-serif;color:#1B1B1B}
+.wrap{position:absolute;inset:0;padding:56px 64px;display:flex;flex-direction:column;justify-content:space-between;
+  background:
+    linear-gradient(135deg,#F6F2EA 0 62%,#1B1B1B 62% 100%)}
+.tag{display:inline-block;font-size:34px;font-weight:900;color:#fff;background:#C8321E;padding:10px 28px;border-radius:999px;align-self:flex-start}
+.big{font-size:150px;font-weight:900;line-height:1.08;letter-spacing:-.02em;white-space:pre-line;
+  -webkit-text-stroke:5px #F6F2EA;paint-order:stroke fill;text-shadow:0 10px 0 rgba(0,0,0,.15)}
+.sub{font-size:58px;font-weight:900;color:#fff;background:#1B1B1B;display:inline-block;padding:14px 32px;border-radius:14px;align-self:flex-start;white-space:pre-line}
+.mark{position:absolute;right:70px;bottom:60px;width:230px;height:230px;border-radius:50%;background:#fff;border:14px solid #C8321E;
+  display:flex;align-items:center;justify-content:center;font-size:92px;font-weight:900}
+</style></head>
+<body><div class="wrap"><div class="tag">{{TAG}}</div><div class="big">{{BIG}}</div><div class="sub">{{SUB}}</div><div class="mark">大家</div></div></body></html>

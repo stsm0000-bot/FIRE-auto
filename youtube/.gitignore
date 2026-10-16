@@ -1,0 +1,4 @@
+out/
+pipeline/assets/*.mp3
+pipeline/assets/*.wav
+__pycache__/
