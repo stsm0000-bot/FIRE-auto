@@ -1,7 +1,7 @@
 // render_frames.js ― Playwright でスライド HTML のアニメーションを 1 コマずつ確定的に PNG にする
 // 使い方: node render_frames.js jobs.json
 // jobs.json: {"width":1920,"height":1080,"jobs":[{"html":"...html","out":"prefix","frames":36,"fps":30}]}
-//   frames=1 のときは最終状態を 1 枚だけ撮る
+//   frames=1 のときは最終状態を 1 枚だけ撮る。transparent=true なら背景を透明にして撮る（映像に重ねる層用）
 const fs = require('fs');
 const path = require('path');
 const { chromium } = require('playwright');
@@ -23,7 +23,7 @@ const { chromium } = require('playwright');
       const ms = n === 1 ? 1e7 : Math.round(i * 1000 / fps);
       await page.evaluate((t) => window.__seek(t), ms);
       const out = n === 1 ? `${job.out}.png` : `${job.out}_${String(i).padStart(4, '0')}.png`;
-      if (!fs.existsSync(out)) await page.screenshot({ path: out, type: 'png' });
+      if (!fs.existsSync(out)) await page.screenshot({ path: out, type: 'png', omitBackground: !!job.transparent });
     }
     done++;
     if (done % 10 === 0) process.stderr.write(`  ${done}/${spec.jobs.length}\n`);

@@ -22,6 +22,10 @@ import numpy as np
 from PIL import Image, ImageDraw
 import audio_synth
 import characters
+try:
+    import scenes          # 物語シーン（演出部）。無くても図解だけの台本はビルドできる
+except ImportError:
+    scenes = None
 
 HERE = Path(__file__).resolve().parent
 TEMPLATE = HERE / "templates" / "slide.html"
@@ -37,7 +41,19 @@ XFADE_FRAMES = 6        # 場面が変わるときのクロスフェードのコ
 JUMP_ZOOMS = (1.0, 1.045, 1.0, 1.07, 1.0, 1.045)   # 画が変わらない台詞が続くとき、台詞ごとに寄る倍率（ジャンプカット風）
 ANIM_SEC = {            # 状態が変わったとき、何秒ぶんコマ撮りするか（レイアウト別）
     "chapter": 0.7, "title": 0.8, "list": 0.8, "flow": 0.9, "compare": 0.8, "bar": 1.3, "quote": 0.7,
-    "ending": 0.9, "counter": 2.3, "portfolio": 2.4, "timeline": 0.9, "photo": 0.9,
+    "ending": 0.9, "counter": 2.3, "portfolio": 2.4, "timeline": 0.9, "photo": 0.9, "scene": 1.3, "clip": 0.0,
+}
+MOUTH_STEP = 0.11       # 物語シーンの口パク: 開/閉を切り替える間隔（秒）
+BLINK_EVERY, BLINK_LEN = 3.7, 0.13   # まばたきの周期と長さ（秒）
+SCENE_SFX_AUTO = {      # 物語シーンで自動で鳴らす効果音（場面の頭）。台本の sfx: で上書き
+    "bg": {"office": "door", "bankbook": "cash", "site": "hammer", "bank": "door"},
+    "act": {"walk": "step", "shock": "shock", "cheer": "sparkle", "bow": "pop"},
+    "prop": {"stamp": "stamp", "money": "coin", "coins": "coin", "cross": "boing", "check": "ding", "price": "pop",
+             "headline": "reveal", "photo": "whoosh", "calendar": "tick", "sign": "pop", "counter": "coin"},
+}
+SCENE_AMBIENCE = {      # 背景 → 環境音
+    "street": "street", "house_old": "street", "house_new": "street", "site": "site", "night": "night",
+    "room_old": "room", "room_new": "room", "office": "room", "desk": "room", "bank": "room", "bankbook": "room",
 }
 RENDER_JS = HERE / "render_frames.js"
 VOICEVOX_URL = os.environ.get("VOICEVOX_URL", "http://127.0.0.1:50021")
@@ -124,8 +140,12 @@ def load_script(path: Path) -> dict:
             default_steps = int(s.get("count", 12))
         elif layout == "compare" or (layout == "quote" and s.get("caption")):
             default_steps = 2
+        elif layout == "scene":
+            default_steps = max([int(p.get("step", 1)) for p in (s.get("props") or [])] + [1])
         else:
             default_steps = 1
+        if layout == "scene" and scenes is None:
+            raise SystemExit("layout: scene を使うには pipeline/scenes.py が必要です")
         steps = int(s.get("steps", default_steps))
         lines, cur, prev = [], 1, 0
         for ln in s.get("lines", []):
@@ -165,13 +185,42 @@ def burst_html(n: int = 22, seed: int = 3) -> str:
     out.append('</div>')
     return "".join(out)
 
-def render_body(doc: dict, sc: Scene, step: int, mark: int | None, anim: bool, prev_step: int = 0) -> str:
+def scene_faces(doc: dict, sc: Scene, ln: Line | None) -> tuple[dict[str, str], str | None]:
+    """物語シーンの各キャラの表情と、話しているキャラ名"""
+    faces: dict[str, str] = {}
+    for c in sc.data.get("chars") or []:
+        faces[str(c.get("who", ""))] = str(c.get("face") or "normal")
+    talking = None
+    if ln is not None and ln.text:
+        sp = doc["speakers"].get(ln.sp, {})
+        talking = sp.get("name") or sp.get("char")
+        if talking:
+            faces[talking] = ln.face or characters.guess_expr(ln.st, ln.text)
+    return faces, talking
+
+def clip_placeholder(d: dict, missing: str | None) -> dict:
+    """clip の映像ファイルが無いとき、代わりに出す物語シーン（無地＋立て札）"""
+    props = [{"kind": "sign", "text": f"ここに映像\n{missing}" if missing else "ここに映像", "at": "center", "step": 1}]
+    if d.get("headline"):
+        props.append({"kind": "headline", "text": d["headline"], "step": 1})
+    return {"bg": "blank", "props": props, "steps": 1}
+
+def render_body(doc: dict, sc: Scene, step: int, mark: int | None, anim: bool, prev_step: int = 0,
+                faces: dict | None = None, talking: str | None = None, variant: str = "closed") -> str:
     """anim=True のとき、この状態で新しく出る要素に .enter（出現アニメ）を付ける"""
     d = sc.data
     L = sc.layout
     h = []
     ent = lambda cond, extra="": (f' enter {extra}' if (anim and cond) else "")
-    if L == "chapter":
+    if L == "scene":
+        return scenes.render_scene(d, step, prev_step, anim, doc["kind"], faces or {}, talking, variant, doc["_script_dir"])
+    elif L == "clip":
+        if scenes is not None:
+            return scenes.render_scene(clip_placeholder(d, d.get("_missing")), 1, 0, anim, doc["kind"], {}, None, "closed", doc["_script_dir"])
+        hd = d.get("headline") or "映像"
+        h.append(f'<div class="title"><div class="big{ent(True)}">{esc(hd)}</div><div class="sub{ent(True)}" style="--i:2">ここに映像{(" / " + esc(d["_missing"])) if d.get("_missing") else ""}</div></div>')
+        return "\n".join(h)
+    elif L == "chapter":
         h.append(f'<div class="chapter{ent(True)}"><div class="num">{sc.chapter_no}</div><div class="ttl">{esc(d.get("heading",""))}</div></div>')
     elif L == "title":
         hd = str(d.get("heading", ""))
@@ -324,7 +373,8 @@ def render_body(doc: dict, sc: Scene, step: int, mark: int | None, anim: bool, p
         raise SystemExit(f"未対応の layout: {L}")
     return "\n".join(h)
 
-def render_html(doc: dict, sc: Scene, step: int, mark: int | None, chapter_idx: int, anim: bool = False, prev_step: int = 0) -> str:
+def render_html(doc: dict, sc: Scene, step: int, mark: int | None, chapter_idx: int, anim: bool = False, prev_step: int = 0,
+                faces: dict | None = None, talking: str | None = None, variant: str = "closed") -> str:
     kind = doc["kind"]
     w, hgt = SIZES[kind]
     tpl = TEMPLATE.read_text(encoding="utf-8")
@@ -335,7 +385,49 @@ def render_html(doc: dict, sc: Scene, step: int, mark: int | None, chapter_idx: 
             .replace("{{QUESTION}}", esc(doc.get("question", "")))
             .replace("{{CHAPTER}}", chap)
             .replace("{{DISCLAIMER}}", esc(doc.get("disclaimer", "登場人物・数字・例文は説明のための架空の設定です")))
-            .replace("{{BODY}}", render_body(doc, sc, step, mark, anim, prev_step)))
+            .replace("{{BODY}}", render_body(doc, sc, step, mark, anim, prev_step, faces, talking, variant)))
+
+OVERLAY_TPL = """<!doctype html><html lang="ja"><head><meta charset="utf-8"><style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:{{W}}px;height:{{H}}px;background:transparent;overflow:hidden;font-family:"{{FONT}}","Noto Sans JP","BIZ UDPGothic","Meiryo","IPAPGothic",sans-serif;font-feature-settings:"palt"}
+.q{position:absolute;left:{{PAD}}px;top:36px;font-size:36px;font-weight:900;color:#1F2A44;background:#fff;border:4px solid #1F2A44;border-radius:999px;padding:12px 34px;max-width:78%;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 5px 0 rgba(31,42,68,.16)}
+.hl{position:absolute;left:0;right:0;top:150px;text-align:center;font-size:92px;font-weight:900;color:#FF7A1A;line-height:1.2;
+  -webkit-text-stroke:2px #fff;paint-order:stroke fill;text-shadow:0 0 0 #fff,-4px -4px 0 #fff,4px -4px 0 #fff,-4px 4px 0 #fff,4px 4px 0 #fff,0 10px 0 rgba(31,42,68,.25)}
+.hl.enter{animation:pop .55s cubic-bezier(.22,.9,.3,1) both}
+@keyframes pop{0%{opacity:0;transform:scale(.5)}55%{opacity:1;transform:scale(1.1)}78%{transform:scale(.96)}100%{opacity:1;transform:none}}
+.foot{position:absolute;right:{{PAD}}px;bottom:{{FOOT}}px;font-size:25px;color:#fff;text-shadow:0 0 6px rgba(0,0,0,.7),0 0 2px rgba(0,0,0,.9);letter-spacing:.02em}
+html[data-kind="short"] .foot{right:auto;left:0;width:100%;text-align:center}
+</style></head><body data-kind="{{KIND}}"><div class="q">問い：{{QUESTION}}</div>{{HL}}<div class="foot">{{DISCLAIMER}}</div>
+<script>window.__seek=function(ms){document.getAnimations().forEach(a=>{a.pause();a.currentTime=ms;});};</script></body></html>"""
+
+def render_overlay_html(doc: dict, headline: str | None, anim: bool) -> str:
+    """映像クリップに重ねる透明な層（問いのピル・大テロップ・注記）"""
+    kind = doc["kind"]; w, hgt = SIZES[kind]
+    hl = f'<div class="hl{" enter" if anim else ""}">{esc(headline)}</div>' if headline else ""
+    return (OVERLAY_TPL.replace("{{W}}", str(w)).replace("{{H}}", str(hgt)).replace("{{KIND}}", kind)
+            .replace("{{FONT}}", doc.get("font", default_font())).replace("{{PAD}}", "96" if kind == "long" else "64")
+            .replace("{{FOOT}}", str(230 + 12) if kind == "long" else "90")
+            .replace("{{QUESTION}}", esc(doc.get("question", ""))).replace("{{HL}}", hl)
+            .replace("{{DISCLAIMER}}", esc(doc.get("disclaimer", "登場人物・数字・例文は説明のための架空の設定です"))))
+
+def extract_clip_frames(src: Path, out_prefix: Path, size: tuple[int, int], nframes: int, fit: str = "cover") -> list[Path]:
+    """映像クリップから FPS でコマを取り出す（足りないぶんは最後のコマを繰り返す）"""
+    w, h = size
+    if fit == "contain":
+        vf = f"scale={w}:{h}:force_original_aspect_ratio=decrease,pad={w}:{h}:(ow-iw)/2:(oh-ih)/2:color=0x1F2A44,fps={FPS}"
+    else:
+        vf = f"scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h},fps={FPS}"
+    last = out_prefix.parent / f"{out_prefix.name}_{nframes:05d}.png"
+    if not last.exists():
+        run(["ffmpeg", "-y", "-i", str(src), "-vf", vf, "-frames:v", str(nframes), "-start_number", "1",
+             str(out_prefix.parent / f"{out_prefix.name}_%05d.png")])
+    frames = sorted(out_prefix.parent.glob(f"{out_prefix.name}_[0-9]*.png"))
+    if not frames:
+        raise SystemExit(f"クリップからコマを取り出せません: {src}")
+    while len(frames) < nframes:
+        frames.append(frames[-1])
+    return frames[:nframes]
 
 def render_png(chrome: str, html: str, out_png: Path, size: tuple[int, int]) -> Path:
     key = hashlib.md5(html.encode("utf-8")).hexdigest()[:12]
@@ -352,6 +444,42 @@ def render_png(chrome: str, html: str, out_png: Path, size: tuple[int, int]) -> 
         im = im.convert("RGB").crop((0, 0, size[0], size[1]))
         im.save(out)
     return out
+
+def render_png_transparent(chrome: str, html: str, out_png: Path, size: tuple[int, int]) -> Path:
+    """背景が透明な層を Chrome で撮る（動きなしモード用）"""
+    if out_png.exists():
+        return out_png
+    html_path = out_png.with_suffix(".html"); html_path.write_text(html, encoding="utf-8")
+    run([chrome, "--headless=new", "--no-sandbox", "--disable-gpu", "--hide-scrollbars", "--default-background-color=00000000",
+         "--force-device-scale-factor=1", f"--window-size={size[0]},{size[1] + 240}", "--virtual-time-budget=2000",
+         f"--screenshot={out_png}", html_path.resolve().as_uri() + "?static"])
+    im = Image.open(out_png).convert("RGBA")
+    if im.size != size:
+        im = im.crop((0, 0, size[0], size[1])); im.save(out_png)
+    return out_png
+
+def mouth_segments(start: float, end: float, speech: float, t0: float) -> list[tuple[str, float]]:
+    """物語シーンの口パク・まばたきの並び。start〜end（台詞内の相対秒）を (変種, 秒) の列にする。
+    speech 秒までは MOUTH_STEP ごとに開/閉、その後は閉じて BLINK_EVERY ごとにまばたき。t0 は動画全体での開始秒（まばたきの位相用）"""
+    segs: list[tuple[str, float]] = []
+    a = start
+    while a < end - 1e-6:
+        if a < speech:
+            v = "open" if int(a / MOUTH_STEP) % 2 == 0 else "closed"
+            b = min(end, speech, (int(a / MOUTH_STEP) + 1) * MOUTH_STEP)
+        else:
+            ph = (t0 + a) % BLINK_EVERY
+            if ph < BLINK_LEN:
+                v = "blink"; b = min(end, a + (BLINK_LEN - ph))
+            else:
+                v = "closed"; b = min(end, a + (BLINK_EVERY - ph))
+        if b <= a: b = a + 0.01
+        if segs and segs[-1][0] == v:
+            segs[-1] = (v, segs[-1][1] + (b - a))
+        else:
+            segs.append((v, b - a))
+        a = b
+    return segs
 
 def render_thumbnail(chrome: str, doc: dict, out_dir: Path) -> Path | None:
     th = doc.get("thumbnail")
@@ -546,17 +674,38 @@ def build(script: Path, out_dir: Path, tts_mode: str, bgm: Path | None, bgm_db: 
     t = 0.0
     chapter_idx = 0
     last_key = None
+    hide_iv: list[tuple[float, float]] = []    # 物語シーン・映像クリップの間は隅のキャラを隠す
+    amb_events: list[tuple[float, float, str]] = []   # (開始, 終了, 環境音名)
+    clip_scenes: dict[str, dict] = {}          # clip 場面 → {src, start, dur}
     for sc in doc["_scenes"]:
         if sc.layout == "chapter":
             chapter_idx = sc.chapter_no
             chapters.append((t, f"{chapter_idx}. " + sc.data.get("heading", "")))
         elif sc.layout == "ending":
             chapters.append((t, "今日の一歩"))
+        if sc.layout == "clip":
+            src = sc.data.get("file")
+            p = (doc["_script_dir"] / src) if src and not Path(src).is_absolute() else (Path(src) if src else None)
+            if p is None or not p.exists():
+                sc.data["_missing"] = Path(src).name if src else "(file が未指定)"
+            clip_scenes[sc.id] = {"src": p if p and p.exists() else None, "start": t, "dur": 0.0}
+        scene_start = t
         lines = sc.lines or [Line(sp=next(iter(doc["speakers"])), text="", step=sc.steps, pause=0.0)]
         for li, ln in enumerate(lines):
             key = (sc.id, ln.step, ln.mark)
             changed = key != last_key
-            html = render_html(doc, sc, ln.step, ln.mark, chapter_idx, anim=changed, prev_step=ln.prev_step if changed else ln.step)
+            story = sc.layout in ("scene", "clip")
+            if sc.layout == "scene":
+                faces, talking = scene_faces(doc, sc, ln)
+                fkey = (sc.id, ln.step, ln.mark, tuple(sorted(faces.items())), talking)
+                redraw = changed or (plan and plan[-1].get("fkey") != fkey)
+                ps = ln.prev_step if changed else ln.step
+                variants = {v: render_html(doc, sc, ln.step, ln.mark, chapter_idx, anim=changed, prev_step=ps, faces=faces, talking=talking, variant=v)
+                            for v in ("closed", "open", "blink")}
+                html = variants["closed"]
+            else:
+                variants = None; fkey = None; redraw = changed
+                html = render_html(doc, sc, ln.step, ln.mark, chapter_idx, anim=changed, prev_step=ln.prev_step if changed else ln.step)
             if ln.text:
                 wav = work / "voice" / f"{sc.id}_{li:02d}.wav"
                 tts_line(tts_mode, doc, ln, wav)
@@ -568,11 +717,26 @@ def build(script: Path, out_dir: Path, tts_mode: str, bgm: Path | None, bgm_db: 
             if ln.text:
                 sub_events.append((t, t + dur + min(pause, 0.3), ln.sp, ln.text))
                 expr = ln.face or characters.guess_expr(ln.st, ln.text)
-                speak[ln.sp].setdefault(expr, []).append((t, t + dur))
+                if not story:
+                    speak[ln.sp].setdefault(expr, []).append((t, t + dur))
+            if story:
+                hide_iv.append((t, t + dur + pause))
             same_run = 0 if changed else (plan[-1]["same_run"] + 1 if plan else 0)
             # ジャンプカットのズームで台詞ごとに画が変わるので、1 台詞の長さだけを「同じ画」として数える
             holds.append((f"{sc.id}/{ln.step}/{ln.mark}", dur + pause))
-            if changed:
+            if changed and sc.layout == "scene":
+                d = sc.data
+                names: list[str] = list(d.get("sfx") or []) if li == 0 else []
+                if li == 0 and not d.get("sfx"):
+                    if d.get("bg") in SCENE_SFX_AUTO["bg"]: names.append(SCENE_SFX_AUTO["bg"][d["bg"]])
+                    for c in d.get("chars") or []:
+                        if c.get("act") in SCENE_SFX_AUTO["act"]: names.append(SCENE_SFX_AUTO["act"][c["act"]])
+                for p in d.get("props") or []:
+                    if ln.prev_step < int(p.get("step", 1)) <= ln.step and p.get("kind") in SCENE_SFX_AUTO["prop"]:
+                        names.append(SCENE_SFX_AUTO["prop"][p["kind"]])
+                for k, nm in enumerate(dict.fromkeys(names)):
+                    se_events.append((t + 0.05 + k * 0.22, nm))
+            elif changed:
                 L = sc.layout
                 newn = max(0, ln.step - ln.prev_step)
                 if L == "chapter": se_events += [(t - 0.3, "riser"), (t + 0.05, "reveal")]
@@ -594,49 +758,108 @@ def build(script: Path, out_dir: Path, tts_mode: str, bgm: Path | None, bgm_db: 
                     if L == "flow" and ln.step >= 1 and ln.step <= len(items) and isinstance(items[ln.step - 1], dict) and items[ln.step - 1].get("sum"):
                         se_events.append((t + 0.15, "reveal"))
                     if ln.mark: se_events.append((t + 0.3, "coin"))
+                elif L == "clip":
+                    se_events.append((t + 0.05, "whoosh"))
                 else:
                     se_events.append((t + 0.05, "pop"))
-            nframes = int(round(ANIM_SEC.get(sc.layout, 0.8) * FPS)) if (changed and motion) else 1
-            plan.append({"html": html, "key": key, "nframes": nframes, "dur": dur + pause, "scene": sc.id, "layout": sc.layout, "same_run": same_run})
+            nframes = max(1, int(round(ANIM_SEC.get(sc.layout, 0.8) * FPS))) if (changed and motion) else 1
+            pl = {"html": html, "key": key, "nframes": nframes, "dur": dur + pause, "scene": sc.id, "layout": sc.layout, "same_run": same_run,
+                  "speech": dur if (ln.text and sc.layout == "scene") else 0.0, "variants": variants, "fkey": fkey, "redraw": redraw,
+                  "t": t}
+            if sc.layout == "clip":
+                pl["clip_off"] = t - scene_start
+                pl["headline"] = sc.data.get("headline")
+            plan.append(pl)
             audio_parts.append((wav, pause)); t += dur + pause
             last_key = key
+        if sc.layout == "clip":
+            clip_scenes[sc.id]["dur"] = t - scene_start
+        if sc.layout == "scene" and sc.data.get("ambience", True):
+            amb = "rain" if sc.data.get("weather") == "rain" else SCENE_AMBIENCE.get(str(sc.data.get("bg", "")))
+            if amb:
+                amb_events.append((scene_start, t, amb))
     total = t
     print(f"      場面 {len(doc['_scenes'])} / 台詞 {len(sub_events)} / 予定尺 {total:.1f} 秒")
 
     print("[2/5] スライドをコマ撮り")
     jobs = []
-    for pl in plan:
-        h = hashlib.md5(pl["html"].encode("utf-8")).hexdigest()[:12]
-        prefix = work / "slides" / f"{pl['scene']}_{h}"
-        pl["prefix"] = prefix
+    def want(html: str, nframes: int, tag: str, transparent: bool = False) -> Path:
+        """この HTML を nframes 枚（1 なら最終状態 1 枚）撮る予約をして、ファイル名の接頭辞を返す"""
+        h = hashlib.md5(html.encode("utf-8")).hexdigest()[:12]
+        prefix = work / "slides" / f"{tag}_{h}"
         html_path = prefix.with_suffix(".html")
         if not html_path.exists():
-            html_path.write_text(pl["html"], encoding="utf-8")
-        if pl["nframes"] == 1:
-            final = prefix.with_suffix(".png")
-            if not final.exists():
+            html_path.write_text(html, encoding="utf-8")
+        if nframes <= 1:
+            if not prefix.with_suffix(".png").exists():
                 if motion:
-                    jobs.append({"html": str(html_path), "out": str(prefix), "frames": 1})
+                    jobs.append({"html": str(html_path), "out": str(prefix), "frames": 1, "transparent": transparent})
+                elif transparent:
+                    render_png_transparent(chrome, html, prefix.with_suffix(".png"), size)
                 else:
-                    render_png(chrome, pl["html"], prefix, size)
+                    render_png(chrome, html, prefix, size)
         else:
-            lastf = prefix.parent / f"{prefix.name}_{pl['nframes']-1:04d}.png"
+            lastf = prefix.parent / f"{prefix.name}_{nframes-1:04d}.png"
             if not lastf.exists():
-                jobs.append({"html": str(html_path), "out": str(prefix), "frames": pl["nframes"], "fps": FPS})
+                jobs.append({"html": str(html_path), "out": str(prefix), "frames": nframes, "fps": FPS, "transparent": transparent})
+        return prefix
+    for pl in plan:
+        if pl["layout"] == "scene":
+            n = pl["nframes"]
+            pl["prefix"] = want(pl["variants"]["closed"], n, pl["scene"] + "_c")
+            pl["prefix_open_anim"] = want(pl["variants"]["open"], n, pl["scene"] + "_o") if n > 1 else None
+            pl["hold"] = {v: want(pl["variants"][v], 1, pl["scene"] + "_" + v[0]) for v in ("closed", "open", "blink")}
+        elif pl["layout"] == "clip":
+            pl["prefix"] = want(pl["html"], 1, pl["scene"])    # 映像が無いときの代わりの画
+            cs = clip_scenes[pl["scene"]]
+            if cs["src"] is not None:
+                first = pl["clip_off"] < 1e-6
+                pl["ov_anim"] = want(render_overlay_html(doc, pl.get("headline"), True), int(round(0.55 * FPS)), f"ov_{pl['scene']}", transparent=True) if (first and motion and pl.get("headline")) else None
+                pl["ov"] = want(render_overlay_html(doc, pl.get("headline"), False), 1, f"ov_{pl['scene']}", transparent=True)
+        else:
+            pl["prefix"] = want(pl["html"], pl["nframes"], pl["scene"])
     if jobs:
         spec = work / "jobs.json"
         spec.write_text(json.dumps({"width": size[0], "height": size[1], "jobs": jobs}, ensure_ascii=False), encoding="utf-8")
         run(["node", str(RENDER_JS), str(spec)], cwd=HERE)
     print(f"      コマ {sum(j.get('frames',1) for j in jobs)} 枚を新規生成")
+    # 映像クリップ: コマを取り出し、透明な層（問い・テロップ・注記）を重ねる
+    for sid, cs in clip_scenes.items():
+        if cs["src"] is None:
+            continue
+        (work / "clips").mkdir(exist_ok=True)
+        n = int(math.ceil(cs["dur"] * FPS)) + 2
+        tag = f"{sid}_{hashlib.md5(str(cs['src'].resolve()).encode()).hexdigest()[:8]}"
+        raw = extract_clip_frames(cs["src"], work / "clips" / tag, size, n, str(next((p for p in plan if p["scene"] == sid), {}).get("fit", "cover")))
+        pls = [p for p in plan if p["scene"] == sid]
+        ov_static = Image.open(pls[0]["ov"].with_suffix(".png")).convert("RGBA")
+        ov_anim = pls[0].get("ov_anim")
+        comp: list[Path] = []
+        for i, f in enumerate(raw):
+            o = work / "clips" / f"{tag}_ov_{i:05d}.png"
+            if not o.exists():
+                ov = ov_static
+                if ov_anim is not None and i < int(round(0.55 * FPS)):
+                    ov = Image.open(ov_anim.parent / f"{ov_anim.name}_{i:04d}.png").convert("RGBA")
+                Image.alpha_composite(Image.open(f).convert("RGBA"), ov).convert("RGB").save(o)
+            comp.append(o)
+        cs["frames"] = comp
 
     print("[3/5] 音声を 1 本に / 字幕 (ASS)")
     voice = work / "voice.wav"; concat_wavs(audio_parts, voice)
     write_ass(doc, sub_events, work / "subs.ass")
     se_track = np.zeros(int((total + 1) * SR))
     if doc.get("sfx", True):
-        clips = {n: audio_synth.sfx(n) for n in ("pop", "coin", "sparkle", "whoosh", "ding", "reveal", "riser", "tick")}
+        clips: dict[str, np.ndarray | None] = {}
         for at, name in se_events:
-            c = clips[name]; st = int(max(0.0, at) * SR)
+            if name not in clips:
+                try:
+                    clips[name] = audio_synth.sfx(name)
+                except Exception:          # 音響部がまだ作っていない名前は鳴らさない
+                    clips[name] = None; print(f"      注意: 効果音 {name} が無いので鳴らしません")
+            c = clips[name]
+            if c is None: continue
+            st = int(max(0.0, at) * SR)
             if st + len(c) < len(se_track): se_track[st:st + len(c)] += c
     audio_synth.write_wav(work / "se.wav", se_track * 0.6)
     avatars = render_characters(chrome, doc, work, 230 if kind == "long" else 200) if doc.get("avatars", True) else None
@@ -647,17 +870,64 @@ def build(script: Path, out_dir: Path, tts_mode: str, bgm: Path | None, bgm_db: 
     for sc in doc["_scenes"]:
         if sc.layout == "photo" and not ((sc.data.get("before") or {}).get("image") and (sc.data.get("after") or {}).get("image")):
             warnings.append(f"photo に写真が入っていない（枠だけ）: {sc.id}")
+        if sc.layout == "clip" and sc.data.get("_missing"):
+            warnings.append(f"clip の映像ファイルが無い（枠だけ）: {sc.id} {sc.data['_missing']}")
+        if sc.layout == "scene":
+            for p in sc.data.get("props") or []:
+                if p.get("kind") == "photo" and not (p.get("image") and (doc["_script_dir"] / str(p["image"])).exists()):
+                    warnings.append(f"scene の写真が無い（枠だけ）: {sc.id} {p.get('image', '')}")
     for wmsg in warnings: print("      警告:", wmsg)
 
     print("[4/5] 画の並び（場面の切り替えはクロスフェード）")
     frames_txt: list[tuple[Path, float]] = []
     prev_png: Path | None = None; prev_scene = None
+    def zoomed(png: Path, z: float) -> Path:
+        """ジャンプカット風に z 倍に寄った画（キャッシュ）"""
+        if z == 1.0:
+            return png
+        zf = work / "slides" / f"z_{hashlib.md5((str(png)+str(z)).encode()).hexdigest()[:10]}.png"
+        if not zf.exists():
+            im = Image.open(png).convert("RGB"); W, H = im.size
+            cw, chh = int(W / z), int(H / z)
+            im.crop(((W - cw) // 2, int((H - chh) * 0.42), (W - cw) // 2 + cw, int((H - chh) * 0.42) + chh)).resize((W, H), Image.LANCZOS).save(zf)
+        return zf
     for pl in plan:
         prefix: Path = pl["prefix"]
-        if pl["nframes"] == 1:
-            seq = [prefix.with_suffix(".png")]
+        disp: list[tuple[Path, float]] = []     # この台詞で表示する (画, 秒) の列
+        if pl["layout"] == "scene":
+            z = JUMP_ZOOMS[pl["same_run"] % len(JUMP_ZOOMS)] if pl["same_run"] > 0 else 1.0
+            hold = {v: zoomed(p.with_suffix(".png"), z) for v, p in pl["hold"].items()}
+            n_anim = pl["nframes"] if pl["nframes"] > 1 else 0
+            n_anim = min(n_anim, max(0, int(pl["dur"] * FPS) - 1))
+            po = pl.get("prefix_open_anim")
+            for i in range(n_anim):
+                ti = i / FPS
+                use_open = ti < pl["speech"] and (int(ti / MOUTH_STEP) % 2 == 0) and po is not None
+                pf = (po if use_open else prefix)
+                disp.append((pf.parent / f"{pf.name}_{i:04d}.png", 1 / FPS))
+            for v, sec in mouth_segments(n_anim / FPS, pl["dur"], pl["speech"], pl["t"]):
+                disp.append((hold[v], sec))
+        elif pl["layout"] == "clip" and clip_scenes[pl["scene"]].get("frames"):
+            fr = clip_scenes[pl["scene"]]["frames"]
+            off = int(round(pl["clip_off"] * FPS)); n = max(1, int(pl["dur"] * FPS))
+            for i in range(n):
+                disp.append((fr[min(off + i, len(fr) - 1)], 1 / FPS))
+            disp[-1] = (disp[-1][0], disp[-1][1] + (pl["dur"] - n / FPS))
         else:
-            seq = [prefix.parent / f"{prefix.name}_{i:04d}.png" for i in range(pl["nframes"])]
+            if pl["nframes"] == 1:
+                seq = [prefix.with_suffix(".png")]
+            else:
+                seq = [prefix.parent / f"{prefix.name}_{i:04d}.png" for i in range(pl["nframes"])]
+            remain = pl["dur"]
+            if pl["same_run"] > 0 and len(seq) == 1:
+                seq = [zoomed(seq[0], JUMP_ZOOMS[pl["same_run"] % len(JUMP_ZOOMS)])]
+            if len(seq) > 1:
+                use = seq[:max(1, min(len(seq), int(remain * FPS) - 1))]
+                for f in use[:-1]:
+                    disp.append((f, 1 / FPS)); remain -= 1 / FPS
+                seq = [use[-1]]
+            disp.append((seq[0], max(0.04, remain)))
+        seq = [disp[0][0]]
         if prev_png is not None and pl["scene"] != prev_scene:   # 場面が変わる: クロスフェード／章扉はワイプ
             a = Image.open(prev_png).convert("RGB"); b = Image.open(seq[0]).convert("RGB")
             wipe = pl["layout"] == "chapter"
@@ -677,23 +947,12 @@ def build(script: Path, out_dir: Path, tts_mode: str, bgm: Path | None, bgm_db: 
                     else:
                         Image.blend(a, b, k / (nxf + 1)).save(f)
                 frames_txt.append((f, 1 / FPS))
-        remain = pl["dur"]
-        if pl["same_run"] > 0 and len(seq) == 1:
-            z = JUMP_ZOOMS[pl["same_run"] % len(JUMP_ZOOMS)]
-            if z != 1.0:
-                zf = work / "slides" / f"z_{hashlib.md5((str(seq[0])+str(z)).encode()).hexdigest()[:10]}.png"
-                if not zf.exists():
-                    im = Image.open(seq[0]).convert("RGB"); W, H = im.size
-                    cw, chh = int(W / z), int(H / z)
-                    im.crop(((W - cw) // 2, int((H - chh) * 0.42), (W - cw) // 2 + cw, int((H - chh) * 0.42) + chh)).resize((W, H), Image.LANCZOS).save(zf)
-                seq = [zf]
-        if len(seq) > 1:
-            use = seq[:max(1, min(len(seq), int(remain * FPS) - 1))]
-            for f in use[:-1]:
-                frames_txt.append((f, 1 / FPS)); remain -= 1 / FPS
-            seq = [use[-1]]
-        frames_txt.append((seq[0], max(0.04, remain)))
-        prev_png = seq[0]; prev_scene = pl["scene"]
+        for f, sec in disp:
+            if frames_txt and frames_txt[-1][0] == f:
+                frames_txt[-1] = (f, frames_txt[-1][1] + sec)
+            else:
+                frames_txt.append((f, sec))
+        prev_png = disp[-1][0]; prev_scene = pl["scene"]
     concat = work / "frames.txt"
     with concat.open("w", encoding="utf-8") as f:
         for p, d in frames_txt:
@@ -721,10 +980,17 @@ def build(script: Path, out_dir: Path, tts_mode: str, bgm: Path | None, bgm_db: 
         chain = "[v0]"
         parts = [vf + "[v0]"]
         n = 0
+        # 物語シーン・映像クリップの間は隅のキャラを出さない（隣り合う区間はまとめる）
+        hide: list[list[float]] = []
+        for a, b in sorted(hide_iv):
+            if hide and a <= hide[-1][1] + 0.05: hide[-1][1] = max(hide[-1][1], b)
+            else: hide.append([a, b])
+        shown = "*not(" + "+".join(f"between(t,{a:.2f},{b:.2f})" for a, b in hide) + ")" if hide else ""
         def ov(img: Path, x, y, enable: str | None = None, bob=False):
             nonlocal chain, n
             yexpr = f"'{y}+6*sin(2*PI*2.4*t)'" if bob else str(y)
-            en = f":enable='{enable}'" if enable else ""
+            en_expr = (f"({enable}){shown}" if enable else (shown[1:] if shown else None))
+            en = f":enable='{en_expr}'" if en_expr else ""
             parts.append(f"movie={img.name}[m{n}];{chain}[m{n}]overlay=x={x}:y={yexpr}{en}[v{n+1}]"); chain = f"[v{n+1}]"; n += 1
         for ki, k in enumerate(keys[:2]):
             x, y = pos[k]
@@ -749,13 +1015,29 @@ def build(script: Path, out_dir: Path, tts_mode: str, bgm: Path | None, bgm_db: 
         bgm = work / "bgm_synth.wav"
         if not bgm.exists():
             audio_synth.write_wav(bgm, audio_synth.bgm(total + 4))
+    # 環境音（物語シーンの背景ごと。0.4 秒でフェード）
+    amb_track = np.zeros(int((total + 1) * SR))
+    amb_fn = getattr(audio_synth, "ambience", None)
+    if amb_events and amb_fn is not None:
+        for i, (a, b, name) in enumerate(amb_events):
+            sec = b - a
+            try:
+                clip = np.asarray(amb_fn(name, sec + 0.5, seed=i + 1), dtype=float)[: int((sec + 0.4) * SR)]
+            except Exception as e:   # 未対応の名前など
+                print(f"      注意: 環境音 {name} を作れません ({e})"); continue
+            fade = int(0.4 * SR); env = np.ones(len(clip))
+            env[:fade] = np.linspace(0, 1, fade); env[-fade:] = np.linspace(1, 0, fade)
+            st = int(a * SR); en = min(len(amb_track), st + len(clip))
+            amb_track[st:en] += (clip * env)[: en - st]
+    audio_synth.write_wav(work / "amb.wav", np.clip(amb_track, -1, 1))
     mix = work / "mix.wav"
-    run(["ffmpeg", "-y", "-i", str(voice), "-stream_loop", "-1", "-i", str(Path(bgm).resolve()), "-i", str(work / "se.wav"),
+    run(["ffmpeg", "-y", "-i", str(voice), "-stream_loop", "-1", "-i", str(Path(bgm).resolve()), "-i", str(work / "se.wav"), "-i", str(work / "amb.wav"),
          "-filter_complex",
          f"[1:a]aformat=sample_rates={SR}:channel_layouts=mono,volume={bgm_db}dB,atrim=0:{total:.3f},afade=t=out:st={max(0,total-2):.2f}:d=2[bg];"
          f"[bg][0:a]sidechaincompress=threshold=0.02:ratio=8:attack=20:release=600:makeup=1[duck];"
          f"[2:a]aformat=sample_rates={SR}:channel_layouts=mono,volume={doc.get('sfx_db', -10)}dB[se];"
-         f"[0:a][duck][se]amix=inputs=3:duration=first:normalize=0[mix]",
+         f"[3:a]aformat=sample_rates={SR}:channel_layouts=mono,volume={doc.get('amb_db', 0)}dB[amb];"
+         f"[0:a][duck][se][amb]amix=inputs=4:duration=first:normalize=0[mix]",
          "-map", "[mix]", "-ac", "1", str(mix)], cwd=work)
     meas = subprocess.run(["ffmpeg", "-i", str(mix), "-af", "loudnorm=I=-14:TP=-1.5:LRA=11:print_format=json", "-f", "null", "-"],
                           capture_output=True, text=True, encoding="utf-8", errors="replace").stderr
