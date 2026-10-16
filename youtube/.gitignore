@@ -2,3 +2,6 @@ out/
 pipeline/assets/*.mp3
 pipeline/assets/*.wav
 __pycache__/
+scripts/photos/
+pipeline/node_modules/
+pipeline/package-lock.json

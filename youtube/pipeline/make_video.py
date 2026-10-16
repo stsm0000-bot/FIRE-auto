@@ -30,7 +30,12 @@ SIZES = {"long": (1920, 1080), "short": (1080, 1920)}
 PAUSE_LINE = 0.30       # 台詞のあとの間
 PAUSE_SCENE = 0.60      # 場面が変わるときの間
 PAUSE_CHAPTER = 0.80    # 章扉のあとの間
-XFADE_FRAMES = 6        # 画の切り替えにかけるコマ数（0.2秒）
+XFADE_FRAMES = 6        # 場面が変わるときのクロスフェードのコマ数（0.2秒）
+ANIM_SEC = {            # 状態が変わったとき、何秒ぶんコマ撮りするか（レイアウト別）
+    "chapter": 0.7, "title": 0.8, "list": 0.8, "flow": 0.9, "compare": 0.8, "bar": 1.3, "quote": 0.7,
+    "ending": 0.9, "counter": 2.3, "portfolio": 2.4, "timeline": 0.9, "photo": 0.9,
+}
+RENDER_JS = HERE / "render_frames.js"
 VOICEVOX_URL = os.environ.get("VOICEVOX_URL", "http://127.0.0.1:50021")
 STUB_SEC_PER_CHAR = 0.17  # スタブ音声: 1文字あたりの秒数（VOICEVOX 標準速の目安）
 
@@ -76,6 +81,7 @@ class Line:
     step: int
     mark: int | None = None
     pause: float = PAUSE_LINE
+    prev_step: int = 0
 
 @dataclass
 class Scene:
@@ -100,21 +106,25 @@ def load_script(path: Path) -> dict:
         if layout == "chapter":
             chapter_no += 1
         items = s.get("items") or s.get("rows") or []
-        if layout in ("list", "flow", "bar"):
+        if layout in ("list", "flow", "bar", "timeline"):
             default_steps = max(1, len(items))
+        elif layout == "portfolio":
+            default_steps = int(s.get("count", 12))
         elif layout == "compare" or (layout == "quote" and s.get("caption")):
             default_steps = 2
         else:
             default_steps = 1
         steps = int(s.get("steps", default_steps))
-        lines, cur = [], 1
+        lines, cur, prev = [], 1, 0
         for ln in s.get("lines", []):
-            cur = int(ln.get("step", cur))
-            lines.append(Line(sp=ln["sp"], text=str(ln["text"]).strip(), step=min(cur, steps),
-                              mark=ln.get("mark"), pause=float(ln.get("pause", PAUSE_LINE))))
+            cur = min(int(ln.get("step", cur)), steps)
+            lines.append(Line(sp=ln["sp"], text=str(ln["text"]).strip(), step=cur,
+                              mark=ln.get("mark"), pause=float(ln.get("pause", PAUSE_LINE)), prev_step=prev))
+            prev = cur
         scenes.append(Scene(id=str(s["id"]), layout=layout, data=s, lines=lines, steps=steps,
                             chapter_no=chapter_no if layout == "chapter" else None))
     doc["_scenes"] = scenes
+    doc["_script_dir"] = path.resolve().parent
     doc["_chapters"] = chapter_no
     return doc
 
@@ -123,40 +133,54 @@ def esc(s) -> str:
     return (str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
             .replace("\n", "<br>"))
 
-def render_body(doc: dict, sc: Scene, step: int, mark: int | None, chapter_idx: int) -> str:
+def house_svg(color="#1B1B1B") -> str:
+    return ('<svg viewBox="0 0 100 90"><path d="M50 8 L94 48 H80 V84 H20 V48 H6 Z" fill="#fff" stroke="%s" stroke-width="6" stroke-linejoin="round"/>'
+            '<rect x="42" y="56" width="16" height="28" fill="%s"/></svg>' % (color, color))
+
+def render_body(doc: dict, sc: Scene, step: int, mark: int | None, anim: bool, prev_step: int = 0) -> str:
+    """anim=True のとき、この状態で新しく出る要素に .enter（出現アニメ）を付ける"""
     d = sc.data
     L = sc.layout
     h = []
+    ent = lambda cond, extra="": (f' enter {extra}' if (anim and cond) else "")
     if L == "chapter":
-        h.append(f'<div class="chapter"><div class="num">{sc.chapter_no}</div><div class="ttl">{esc(d.get("heading",""))}</div></div>')
+        h.append(f'<div class="chapter{ent(True)}"><div class="num">{sc.chapter_no}</div><div class="ttl">{esc(d.get("heading",""))}</div></div>')
     elif L == "title":
-        h.append(f'<div class="title"><div class="big">{esc(d.get("heading",""))}</div>')
+        h.append(f'<div class="title"><div class="big{ent(True)}">{esc(d.get("heading",""))}</div>')
         if d.get("sub"):
-            h.append(f'<div class="sub">{esc(d["sub"])}</div>')
+            h.append(f'<div class="sub{ent(True)}" style="--i:2">{esc(d["sub"])}</div>')
         h.append('</div>')
     elif L in ("list", "flow"):
         items = d.get("items", [])
         h.append(f'<div class="{L}">')
         if d.get("heading"):
-            h.append(f'<div class="h">{esc(d["heading"])}</div>')
+            h.append(f'<div class="h{ent(step <= 1)}">{esc(d["heading"])}</div>')
         h.append('<div class="row">')
         for i, it in enumerate(items, 1):
-            cls = "box" + (" on" if i <= step else " off") + (" mark" if mark == i else "")
-            label = it if isinstance(it, str) else it.get("text", "")
-            note = "" if isinstance(it, str) else it.get("note", "")
-            h.append(f'<div class="{cls}"><span class="n">{i}</span><span class="t">{esc(label)}</span>'
-                     + (f'<span class="note">{esc(note)}</span>' if note and i <= step else "") + '</div>')
-            if L == "flow" and i < len(items):
-                h.append(f'<div class="arrow{" on" if i < step else " off"}">→</div>')
+            it = {"text": it} if isinstance(it, str) else it
+            new = (prev_step < i <= step) if anim else False
+            cls = "box" + (" on" if i <= step else " off") + (" mark" if mark == i else "") + (" sum" if it.get("sum") else "")
+            cls += (" enter pop" if new else "")
+            if L == "flow" and i > 1:
+                op = it.get("op")
+                h.append(f'<div class="{"op" if op else "arrow"}{" on" if i <= step else " off"}{" enter" if new else ""}" style="--i:{(i-prev_step-1)*2}">{esc(op) if op else "→"}</div>')
+            inner = f'<span class="n">{i}</span>' if L == "list" else ""
+            if it.get("value") is not None:
+                inner += f'<span class="v">{esc(it["value"])}</span>'
+            inner += f'<span class="t">{esc(it.get("text",""))}</span>'
+            if it.get("note") and i <= step:
+                inner += f'<span class="note">{esc(it["note"])}</span>'
+            h.append(f'<div class="{cls}" style="--i:{(i-prev_step-1)*2+1 if new else 0}">{inner}</div>')
         h.append('</div></div>')
     elif L == "compare":
         h.append('<div class="compare">')
         for k, side in enumerate(("left", "right"), 1):
-            s = d.get(side, {})
-            cls = "col" + (" on" if k <= step else " off") + (f' {s.get("tone","")}')
-            h.append(f'<div class="{cls}"><div class="ct">{esc(s.get("title",""))}</div>')
-            for it in s.get("items", []):
-                h.append(f'<div class="ci">{esc(it)}</div>')
+            sd = d.get(side, {})
+            new = (prev_step < k <= step) if anim else False
+            cls = "col" + (" on" if k <= step else " off") + f' {sd.get("tone","")}' + (" enter slide" if new else "")
+            h.append(f'<div class="{cls}"><div class="ct">{esc(sd.get("title",""))}</div>')
+            for j, it in enumerate(sd.get("items", [])):
+                h.append(f'<div class="ci{" enter" if new else ""}" style="--i:{j+2}">{esc(it)}</div>')
             h.append('</div>')
         h.append('</div>')
     elif L == "bar":
@@ -164,32 +188,93 @@ def render_body(doc: dict, sc: Scene, step: int, mark: int | None, chapter_idx: 
         mx = max([float(r.get("value", 0)) for r in rows] + [1.0])
         h.append('<div class="bars">')
         if d.get("heading"):
-            h.append(f'<div class="h">{esc(d["heading"])}</div>')
+            h.append(f'<div class="h{ent(step <= 1)}">{esc(d["heading"])}</div>')
         for i, r in enumerate(rows, 1):
             w = int(100 * float(r.get("value", 0)) / mx)
-            on = " on" if i <= step else " off"
-            h.append(f'<div class="brow{on}{" mark" if mark == i else ""}"><div class="bl">{esc(r.get("label",""))}</div>'
+            new = (prev_step < i <= step) if anim else False
+            cls = "brow" + (" on" if i <= step else " off") + (" mark" if mark == i else "") + (" enter" if new else "")
+            h.append(f'<div class="{cls}" style="--i:{i-prev_step-1}"><div class="bl">{esc(r.get("label",""))}</div>'
                      f'<div class="bt"><div class="bf" style="width:{w}%"></div></div><div class="bv">{esc(r.get("note",""))}</div></div>')
         h.append('</div>')
     elif L == "quote":
         h.append('<div class="quote">')
         if d.get("heading"):
-            h.append(f'<div class="h">{esc(d["heading"])}</div>')
-        h.append(f'<div class="qbox">{esc(d.get("text",""))}</div>')
+            h.append(f'<div class="h{ent(step <= 1)}">{esc(d["heading"])}</div>')
+        h.append(f'<div class="qbox{ent(step <= 1, "pop")}">{esc(d.get("text",""))}</div>')
         if d.get("caption"):
-            h.append(f'<div class="cap{" on" if step >= 2 else " off"}">{esc(d["caption"])}</div>')
+            h.append(f'<div class="cap{" on" if step >= 2 else " off"}{ent(step >= 2 and prev_step < 2)}">{esc(d["caption"])}</div>')
         h.append('</div>')
     elif L == "ending":
-        h.append('<div class="ending"><div class="eh">今日の一歩</div>'
-                 f'<div class="eb">{esc(d.get("heading",""))}</div>')
+        h.append(f'<div class="ending"><div class="eh{ent(True)}">今日の一歩</div>'
+                 f'<div class="eb{ent(True)}" style="--i:1">{esc(d.get("heading",""))}</div>')
         if d.get("sub"):
-            h.append(f'<div class="es">{esc(d["sub"])}</div>')
-        h.append('<div class="ecta">続きは note で ▶</div></div>')
+            h.append(f'<div class="es{ent(True)}" style="--i:3">{esc(d["sub"])}</div>')
+        h.append(f'<div class="ecta{ent(True)}" style="--i:5">{esc(d.get("cta", "続きは note で ▶"))}</div></div>')
+    elif L == "counter":
+        # 大きな数字が 0 から伸びる。value: 数値, unit: "万円" など, dur: 秒
+        val = float(d.get("value", 0)); dec = int(d.get("decimals", 0))
+        dur = int(float(d.get("dur", 2.0)) * 1000)
+        cnt = (f'<span data-count-from="0" data-count-to="{val}" data-count-dur="{dur}" data-count-dec="{dec}" data-prefix="{esc(d.get("prefix",""))}">0</span>'
+               if anim else f'{esc(d.get("prefix",""))}{val:,.{dec}f}')
+        h.append(f'<div class="counter"><div class="lbl{ent(True)}">{esc(d.get("heading",""))}</div>'
+                 f'<div class="num{ent(True, "pop")}">{cnt}<small>{esc(d.get("unit",""))}</small></div>')
+        if d.get("sub"):
+            h.append(f'<div class="sub{ent(True)}" style="--i:4">{esc(d["sub"])}</div>')
+        h.append('</div>')
+    elif L == "portfolio":
+        # 戸建てが 1 軒ずつ増え、右の合計（戸数・月の家賃・年の家賃）が転がる
+        n = int(d.get("count", 12)); rent = float(d.get("rent", 7)); cols = int(d.get("cols", 6 if doc["kind"] == "long" else 4))
+        h.append(f'<div class="portfolio"><div class="houses" style="--cols:{cols}">')
+        for i in range(1, n + 1):
+            new = (prev_step < i <= step) if anim else False
+            on = i <= step
+            h.append(f'<div class="house{" on" if on else " off"}{" enter pop" if new else ""}" style="--i:{i-prev_step-1}">'
+                     f'{house_svg("#1B1B1B" if on else "#9a968f")}<span>{esc(d.get("label","戸建て"))} {i}</span></div>')
+        h.append('</div><div class="totals">')
+        rows = [("戸数", prev_step, step, "戸", 0), (d.get("rent_label", "月の家賃"), prev_step * rent, step * rent, d.get("unit", "万円"), 0),
+                ("年の家賃", prev_step * rent * 12, step * rent * 12, d.get("unit", "万円"), 0)]
+        delay = 200 + max(0, step - prev_step - 1) * 120
+        for k, (lbl, frm, to, unit, dec) in enumerate(rows):
+            v = (f'<span data-count-from="{frm}" data-count-to="{to}" data-count-dur="900" data-count-delay="{delay}" data-count-dec="{dec}">{frm:,.{dec}f}</span>'
+                 if anim and frm != to else f'{to:,.{dec}f}')
+            h.append(f'<div class="tot"><div class="tl">{esc(lbl)}</div><div class="tv">{v}<small> {esc(unit)}</small></div></div>')
+        h.append('</div></div>')
+    elif L == "timeline":
+        items = d.get("items", [])
+        h.append(f'<div class="timeline">')
+        if d.get("heading"):
+            h.append(f'<div class="h{ent(step <= 1)}">{esc(d["heading"])}</div>')
+        h.append('<div class="tl-line"></div>')
+        h.append(f'<div class="tl-items" style="--n:{len(items)}">')
+        for i, it in enumerate(items, 1):
+            new = (prev_step < i <= step) if anim else False
+            h.append(f'<div class="tl-item{" on" if i <= step else " off"}{" mark" if mark == i else ""}{" enter pop" if new else ""}" style="--i:{i-prev_step-1}">'
+                     f'<div class="dot"></div><div class="when">{esc(it.get("when",""))}</div><div class="what">{esc(it.get("text",""))}</div>'
+                     + (f'<div class="note">{esc(it["note"])}</div>' if it.get("note") else "") + '</div>')
+        h.append('</div></div>')
+    elif L == "photo":
+        # before / after の写真（無ければ枠だけ）。パスは台本ファイルからの相対でも可
+        h.append('<div class="photos">')
+        for k, key in enumerate(("before", "after"), 1):
+            ph = d.get(key, {}) or {}
+            new = (prev_step < k <= step) if anim else False
+            src = ph.get("image")
+            if src:
+                src = Path(src)
+                if not src.is_absolute():
+                    src = (doc["_script_dir"] / src)
+                img = f'<img src="{src.resolve().as_uri()}">' if src.exists() else f'<div class="ph-empty">写真が見つかりません<br>{esc(src.name)}</div>'
+            else:
+                img = f'<div class="ph-empty">{esc(ph.get("placeholder", "ここに写真"))}</div>'
+            h.append(f'<div class="ph {key}{" on" if k <= step else " off"}{" enter pop" if new else ""}" style="--i:{(k-prev_step-1)*3}">'
+                     f'{img}<div class="tag">{esc(ph.get("tag", "ビフォー" if key == "before" else "アフター"))}</div>'
+                     f'<div class="cap">{esc(ph.get("caption",""))}</div></div>')
+        h.append('</div>')
     else:
         raise SystemExit(f"未対応の layout: {L}")
     return "\n".join(h)
 
-def render_html(doc: dict, sc: Scene, step: int, mark: int | None, chapter_idx: int) -> str:
+def render_html(doc: dict, sc: Scene, step: int, mark: int | None, chapter_idx: int, anim: bool = False, prev_step: int = 0) -> str:
     kind = doc["kind"]
     w, hgt = SIZES[kind]
     tpl = TEMPLATE.read_text(encoding="utf-8")
@@ -200,7 +285,7 @@ def render_html(doc: dict, sc: Scene, step: int, mark: int | None, chapter_idx: 
             .replace("{{QUESTION}}", esc(doc.get("question", "")))
             .replace("{{CHAPTER}}", chap)
             .replace("{{DISCLAIMER}}", esc(doc.get("disclaimer", "登場人物・数字・例文は説明のための架空の設定です")))
-            .replace("{{BODY}}", render_body(doc, sc, step, mark, chapter_idx)))
+            .replace("{{BODY}}", render_body(doc, sc, step, mark, anim, prev_step)))
 
 def render_png(chrome: str, html: str, out_png: Path, size: tuple[int, int]) -> Path:
     key = hashlib.md5(html.encode("utf-8")).hexdigest()[:12]
@@ -211,7 +296,7 @@ def render_png(chrome: str, html: str, out_png: Path, size: tuple[int, int]) -> 
     html_path.write_text(html, encoding="utf-8")
     run([chrome, "--headless=new", "--no-sandbox", "--disable-gpu", "--hide-scrollbars",
          "--force-device-scale-factor=1", f"--window-size={size[0]},{size[1]}",
-         f"--screenshot={out}", html_path.resolve().as_uri()])
+         "--virtual-time-budget=2000", f"--screenshot={out}", html_path.resolve().as_uri() + "?static"])
     im = Image.open(out)
     if im.size != size:  # 念のため寸法を揃える
         im = im.convert("RGB").resize(size)
@@ -326,61 +411,113 @@ def write_ass(doc: dict, events: list[tuple[float, float, str, str]], out: Path)
     out.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 # ---------------------------------------------------------------- 結合
+def motion_available() -> bool:
+    if os.environ.get("MOTION", "1") == "0":
+        return False
+    if not shutil.which("node"):
+        return False
+    r = subprocess.run(["node", "-e", "require('playwright')"], capture_output=True, cwd=HERE)
+    return r.returncode == 0
+
 def build(script: Path, out_dir: Path, tts_mode: str, bgm: Path | None, bgm_db: float):
     doc = load_script(script)
     kind = doc["kind"]; size = SIZES[kind]
     out_dir.mkdir(parents=True, exist_ok=True)
     work = out_dir / "work"; (work / "slides").mkdir(parents=True, exist_ok=True); (work / "voice").mkdir(exist_ok=True)
     chrome = find_chrome()
-    print(f"[1/5] スライド描画 ({kind} {size[0]}x{size[1]})  chrome={chrome}")
+    motion = motion_available()
+    print(f"[1/5] 台詞と音声  ({kind} {size[0]}x{size[1]}  動き: {'あり(Playwright)' if motion else 'なし(静止画)'})")
 
-    segments: list[tuple[Path, float]] = []     # (png, 表示秒)
-    audio_parts: list[tuple[Path, float]] = []  # (wav, 後ろの無音秒)
+    # ---- 第 1 段: 音声を作りながら、画の「状態」と表示秒を並べる
+    plan: list[dict] = []        # {html, key, nframes, dur, scene}
+    audio_parts: list[tuple[Path, float]] = []
     sub_events: list[tuple[float, float, str, str]] = []
     chapters: list[tuple[float, str]] = []
     t = 0.0
     chapter_idx = 0
-    for si, sc in enumerate(doc["_scenes"]):
+    last_key = None
+    for sc in doc["_scenes"]:
         if sc.layout == "chapter":
             chapter_idx = sc.chapter_no
             chapters.append((t, f"{chapter_idx}. " + sc.data.get("heading", "")))
         elif sc.layout == "ending":
             chapters.append((t, "今日の一歩"))
-        if not sc.lines:  # 台詞なしの場面は 2 秒見せる
-            png = render_png(chrome, render_html(doc, sc, sc.steps, None, chapter_idx), work / "slides" / sc.id, size)
-            sil = work / "voice" / f"{sc.id}_sil.wav"; write_silence(sil, 2.0)
-            segments.append((png, 2.0)); audio_parts.append((sil, 0.0)); t += 2.0
-        for li, ln in enumerate(sc.lines):
-            png = render_png(chrome, render_html(doc, sc, ln.step, ln.mark, chapter_idx), work / "slides" / sc.id, size)
-            wav = work / "voice" / f"{sc.id}_{li:02d}.wav"
-            tts_line(tts_mode, doc, ln, wav)
-            dur = wav_duration(wav)
-            last = li == len(sc.lines) - 1
+        lines = sc.lines or [Line(sp=next(iter(doc["speakers"])), text="", step=sc.steps, pause=0.0)]
+        for li, ln in enumerate(lines):
+            key = (sc.id, ln.step, ln.mark)
+            changed = key != last_key
+            html = render_html(doc, sc, ln.step, ln.mark, chapter_idx, anim=changed, prev_step=ln.prev_step if changed else ln.step)
+            if ln.text:
+                wav = work / "voice" / f"{sc.id}_{li:02d}.wav"
+                tts_line(tts_mode, doc, ln, wav)
+                dur = wav_duration(wav)
+            else:
+                wav = work / "voice" / f"{sc.id}_sil.wav"; write_silence(wav, 2.0); dur = 2.0
+            last = li == len(lines) - 1
             pause = (PAUSE_CHAPTER if sc.layout == "chapter" else PAUSE_SCENE) if last else ln.pause
-            sub_events.append((t, t + dur + min(pause, 0.3), ln.sp, ln.text))
-            segments.append((png, dur + pause)); audio_parts.append((wav, pause)); t += dur + pause
+            if ln.text:
+                sub_events.append((t, t + dur + min(pause, 0.3), ln.sp, ln.text))
+            nframes = int(round(ANIM_SEC.get(sc.layout, 0.8) * FPS)) if (changed and motion) else 1
+            plan.append({"html": html, "key": key, "nframes": nframes, "dur": dur + pause, "scene": sc.id})
+            audio_parts.append((wav, pause)); t += dur + pause
+            last_key = key
     total = t
     print(f"      場面 {len(doc['_scenes'])} / 台詞 {len(sub_events)} / 予定尺 {total:.1f} 秒")
 
-    print("[2/5] 音声を 1 本に")
-    voice = work / "voice.wav"; concat_wavs(audio_parts, voice)
+    print("[2/5] スライドをコマ撮り")
+    jobs = []
+    for pl in plan:
+        h = hashlib.md5(pl["html"].encode("utf-8")).hexdigest()[:12]
+        prefix = work / "slides" / f"{pl['scene']}_{h}"
+        pl["prefix"] = prefix
+        html_path = prefix.with_suffix(".html")
+        if not html_path.exists():
+            html_path.write_text(pl["html"], encoding="utf-8")
+        if pl["nframes"] == 1:
+            final = prefix.with_suffix(".png")
+            if not final.exists():
+                if motion:
+                    jobs.append({"html": str(html_path), "out": str(prefix), "frames": 1})
+                else:
+                    render_png(chrome, pl["html"], prefix, size)
+        else:
+            lastf = prefix.parent / f"{prefix.name}_{pl['nframes']-1:04d}.png"
+            if not lastf.exists():
+                jobs.append({"html": str(html_path), "out": str(prefix), "frames": pl["nframes"], "fps": FPS})
+    if jobs:
+        spec = work / "jobs.json"
+        spec.write_text(json.dumps({"width": size[0], "height": size[1], "jobs": jobs}, ensure_ascii=False), encoding="utf-8")
+        run(["node", str(RENDER_JS), str(spec)], cwd=HERE)
+    print(f"      コマ {sum(j.get('frames',1) for j in jobs)} 枚を新規生成")
 
-    print("[3/5] 字幕 (ASS)")
+    print("[3/5] 音声を 1 本に / 字幕 (ASS)")
+    voice = work / "voice.wav"; concat_wavs(audio_parts, voice)
     write_ass(doc, sub_events, work / "subs.ass")
 
-    print("[4/5] 画の並び（切り替えはクロスフェード）")
-    frames_txt = []
-    prev: Path | None = None
-    for png, dur in segments:
-        if prev is not None and prev != png:
-            a = Image.open(prev).convert("RGB"); b = Image.open(png).convert("RGB")
+    print("[4/5] 画の並び（場面の切り替えはクロスフェード）")
+    frames_txt: list[tuple[Path, float]] = []
+    prev_png: Path | None = None; prev_scene = None
+    for pl in plan:
+        prefix: Path = pl["prefix"]
+        if pl["nframes"] == 1:
+            seq = [prefix.with_suffix(".png")]
+        else:
+            seq = [prefix.parent / f"{prefix.name}_{i:04d}.png" for i in range(pl["nframes"])]
+        if prev_png is not None and pl["scene"] != prev_scene:   # 場面が変わる: クロスフェード
+            a = Image.open(prev_png).convert("RGB"); b = Image.open(seq[0]).convert("RGB")
             for k in range(1, XFADE_FRAMES + 1):
-                f = work / "slides" / f"x_{hashlib.md5((str(prev)+str(png)+str(k)).encode()).hexdigest()[:10]}.png"
+                f = work / "slides" / f"x_{hashlib.md5((str(prev_png)+str(seq[0])+str(k)).encode()).hexdigest()[:10]}.png"
                 if not f.exists():
                     Image.blend(a, b, k / (XFADE_FRAMES + 1)).save(f)
                 frames_txt.append((f, 1 / FPS))
-            dur = max(0.05, dur - XFADE_FRAMES / FPS)
-        frames_txt.append((png, dur)); prev = png
+        remain = pl["dur"]
+        if len(seq) > 1:
+            use = seq[:max(1, min(len(seq), int(remain * FPS) - 1))]
+            for f in use[:-1]:
+                frames_txt.append((f, 1 / FPS)); remain -= 1 / FPS
+            seq = [use[-1]]
+        frames_txt.append((seq[0], max(0.04, remain)))
+        prev_png = seq[0]; prev_scene = pl["scene"]
     concat = work / "frames.txt"
     with concat.open("w", encoding="utf-8") as f:
         for p, d in frames_txt:
@@ -396,7 +533,6 @@ def build(script: Path, out_dir: Path, tts_mode: str, bgm: Path | None, bgm_db: 
           f"crop={w}:{h}:x='{dx}+{dx*0.8:.0f}*sin(t/11)':y='{dy}+{dy*0.8:.0f}*sin(t/17)',"
           f"drawbox=x=0:y=ih-8:w='iw*t/{total:.2f}':h=8:color=0x{accent}@0.9:t=fill,"
           f"subtitles=subs.ass,format=yuv420p")
-    # 音: BGM があればダッキング混合 → 2 パスのラウドネス正規化
     mix = work / "mix.wav"
     if bgm and Path(bgm).exists():
         run(["ffmpeg", "-y", "-i", str(voice), "-stream_loop", "-1", "-i", str(Path(bgm).resolve()),
@@ -411,8 +547,7 @@ def build(script: Path, out_dir: Path, tts_mode: str, bgm: Path | None, bgm_db: 
                           capture_output=True, text=True, encoding="utf-8", errors="replace").stderr
     m = json.loads(meas[meas.rfind("{"):meas.rfind("}") + 1])
     final_a = work / "final.wav"
-    measured_i = float(m["input_i"])
-    if tts_mode == "stub" or measured_i < -70:   # スタブ（無音）の場合は正規化しない
+    if tts_mode == "stub" or float(m["input_i"]) < -70:   # スタブ（無音）の場合は正規化しない
         shutil.copy(mix, final_a)
     else:
         run(["ffmpeg", "-y", "-i", str(mix), "-af",

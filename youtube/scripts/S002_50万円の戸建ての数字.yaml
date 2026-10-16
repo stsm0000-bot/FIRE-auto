@@ -1,0 +1,53 @@
+# ショート ― 002 の第 2 章「1戸の数字」を 1 問 1 答に
+id: "S002"
+kind: short
+title: "50万円の戸建て、1年でいくら残る？ #不動産投資 #大家 #戸建て投資"
+question: "50万円の戸建て、1年でいくら残る？"
+note_url: "https://note.com/dokechi_hudousan"
+disclaimer: "物件・数字は特定を避けるため丸めています"
+thumbnail: {big: "50万円の\n戸建て", sub: "1年の手残りは"}
+publish:
+  lead: "買値50万円・直し150万円・家賃7万円の戸建て。1年の手残りを、経費を引いて出します。丸めた実数です。"
+  tags: [不動産投資, 大家, 戸建て投資, ボロ戸建て, Shorts]
+speakers:
+  聞: {voicevox_id: 14, name: "聞き手", color: "#2F5FB3"}
+  答: {voicevox_id: 52, name: "大家", color: "#A3631C"}
+scenes:
+  - id: hook
+    layout: counter
+    heading: "買値"
+    value: 50
+    unit: "万円"
+    sub: "築50年の戸建て"
+    dur: 1.2
+    lines:
+      - {sp: 答, text: "買値50万円の戸建て。直して貸すと、1年でいくら残るか。"}
+  - id: cost
+    layout: flow
+    heading: "かかったお金"
+    items:
+      - {text: "買値", value: "50万円"}
+      - {text: "直し", value: "150万円", op: "＋"}
+      - {text: "合計", value: "200万円", op: "＝", sum: true}
+    lines:
+      - {sp: 答, text: "買値50万円に、直しが150万円。合わせて200万円。", step: 3}
+  - id: rent
+    layout: flow
+    heading: "1年の家賃と手残り"
+    items:
+      - {text: "家賃 月7万円×12", value: "84万円"}
+      - {text: "税・修繕・空室", value: "20万円", op: "−"}
+      - {text: "手残り", value: "64万円", op: "＝", sum: true}
+    lines:
+      - {sp: 答, text: "家賃は月7万円、1年で84万円。", step: 1}
+      - {sp: 答, text: "固定資産税、修繕の積み立て、空室1か月ぶんで20万円を引く。", step: 2}
+      - {sp: 答, text: "手残りは64万円。3年ちょっとで、かけたお金が戻る計算です。", step: 3}
+      - {sp: 聞, text: "簡単ではないですよね。"}
+      - {sp: 答, text: "簡単ではない。ただ、大金がないと始められない、は違います。"}
+  - id: ending
+    layout: ending
+    heading: "ポータルで\n「50万〜300万円・戸建て」を眺める"
+    sub: "買わなくていい"
+    cta: "道筋は長尺の動画で ▶"
+    lines:
+      - {sp: 答, text: "今日の一歩。ポータルサイトで、50万から300万円の戸建てを眺めてみてください。買わなくていい。", pause: 0.8}
