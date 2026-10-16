@@ -481,6 +481,16 @@ def mouth_segments(start: float, end: float, speech: float, t0: float) -> list[t
         a = b
     return segs
 
+def thumb_char(th: dict) -> str:
+    """サムネのキャラ。thumbnail の char（ぽん太/コツさん）・face（surprised など）・act（ポーズ）で指定。既定はコツさんの喜び"""
+    ch = characters.CHARACTERS.get(str(th.get("char", "コツさん")), characters.CHARACTERS["コツさん"])
+    face = str(th.get("face", "happy")); act = th.get("act")
+    try:
+        body = ch["svg"](face, False, False, act) if act else ch["svg"](face)
+    except TypeError:      # ポーズ未対応の characters.py
+        body = ch["svg"](face)
+    return characters.svg_document(body, 300)
+
 def render_thumbnail(chrome: str, doc: dict, out_dir: Path) -> Path | None:
     th = doc.get("thumbnail")
     if not th:
@@ -491,7 +501,7 @@ def render_thumbnail(chrome: str, doc: dict, out_dir: Path) -> Path | None:
             .replace("{{FONT}}", doc.get("font", default_font()))
             .replace("{{BIG}}", esc(th.get("big", ""))).replace("{{SUB}}", esc(th.get("sub", "")))
             .replace("{{TAG}}", esc(th.get("tag", "小規模な大家")))
-            .replace("{{CHAR}}", characters.svg_document(characters.kotsu("happy"), 300)))
+            .replace("{{CHAR}}", thumb_char(th)))
     return render_png(chrome, html, out_dir / "thumb.png", size)
 
 # ---------------------------------------------------------------- 話者キャラクター

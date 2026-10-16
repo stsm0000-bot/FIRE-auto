@@ -5,23 +5,24 @@
 #   - 0〜3秒で結果の数字（家賃7万円・買値50万円）を画面と台詞に出す。挨拶・自己紹介から始めない。
 #   - 3〜10秒で「見終わるとこうなる」＋オープンループ（最後に1戸目で損した金額を言う。ヒントは5千円の欲）。
 #   - 10〜30秒で物語の入口（ぽん太の残業帰りの夜 → 週末の散歩でコツさんに出会う）。自己紹介は 45 秒ごろに 2 台詞。
-#   - 全 34 場面のうち 17 場面が scene（キャラが場所に立つ物語）、残りは数字の図解。交互に置く。
+#   - 全 35 場面のうち 18 場面が scene（キャラが場所に立つ物語）、残りは数字の図解。交互に置く。
 #   - 山は 4 つ: ①50万円の家を見つける（驚き） ②見積りが 80 万円膨らむ（失敗1） ③通帳に 7 万円（達成）
 #     ④12 戸の未来図 →「でも 1 戸目は…」（5 千円欲張って 4 か月空室＝オープンループの回収、失敗2）
 #   - note への送客 2 か所（bar 場面「見積りの内訳の一覧表」／ ending「確認 12 項目のチェック表と見積りの内訳表」）
 #   - コメントを促す問い 1 つ（street2「地元で 100 万円以下の家、見たことありますか？」）
 #   - ending は 20 秒以上（次回「50万円の家の探し方」の予告つき。終了画面の要素を置く時間）
 #   - 1 台詞 1 変化: scene は props の step、図解は step/mark を台詞ごとに進める。
-#   - 品質部の「必ず直す 5 つ」(docs/11) を反映: 写真 2 枚（photo 小道具）、冒頭 20 秒の作り直し、1 台詞 1 変化、
+#   - 品質部の「次の 1 本で直す 5 つ」(docs/11) を反映: 写真 2 枚（photo 小道具）、冒頭 20 秒の作り直し、1 台詞 1 変化、
 #     キャラ名で名乗る、数字を閉じる（諸費用 20 万を足して総額 300 万／年表に手残り以外の原資）。
 #
 # ■ 推定尺（台詞の文字数 × 0.155 秒 ＋ 台詞ごとの間 0.3 秒（pause 指定はその値）＋ 場面ごとの間 0.6 秒（章扉 0.8））
-#   台詞 126・文字数 約3,060・場面 34 → 約 8 分 55 秒（公開前にスタブ音声で実測すること）
+#   台詞 137・文字数 約2,990・場面 35 → 約 8 分 50 秒（公開前にスタブ音声で実測すること）
 #
 # ■ ★ 公開前に本人が実態に合わせて直す数字・事実（台詞 text には ★ を入れない。ここで管理する）
 #   ★1 買値 50 万円・築 50 年・東京都内の区部（板橋区・足立区の例示）
 #   ★2 直しの見積り 150 万円 → 実際 230 万円（原因＝屋根裏の雨漏り）。内訳の順（屋根・水回り・床・壁）
 #   ★3 諸費用 20 万円（仲介手数料・登記・不動産取得税・火災保険）
+#   ★3' 膨らんだ 80 万円は銀行に断られて貯金から出した（1 戸目は現金 300 万円）
 #   ★4 家賃 7 万円。相場 7 万円のところを 7 万 5 千円で募集 → 4 か月空室 → 7 万円に下げて翌週に決まった
 #   ★5 固定資産税 年 3 万円・修繕の積み立て 年 10 万円・空室 1 か月ぶん 7 万円 → 手残り 64 万円
 #   ★6 工事 4 か月・空室 4 か月・買ってから鍵を渡すまで 8 か月
@@ -255,6 +256,7 @@ scenes:
     dur: 1.4
     lines:
       - {sp: 答, text: "数字は、買値、直し、家賃の順に見ます。まず買値、50万円。", st: "ノーマル"}
+      - {sp: 答, text: "この順番を飛ばして家賃から見ると、皮算用になります。", st: "ノーマル", face: calm}
       - {sp: 聞, text: "で、次が直し、ですね。150万円の。", st: "ノーマル", face: normal}
 
   # ================================================================
@@ -278,14 +280,16 @@ scenes:
     props:
       - {kind: counter, value: 220, unit: "万円", label: "皮算用の総額", at: center, step: 1}
       - {kind: bubble, text: "38％！", who: ぽん太, step: 2}
-      - {kind: sweat, who: コツさん, step: 3}
-      - {kind: exclaim, who: コツさん, step: 4}
-    steps: 4
+      - {kind: star, who: ぽん太, step: 3}
+      - {kind: sweat, who: コツさん, step: 4}
+      - {kind: exclaim, who: コツさん, step: 5}
+    steps: 5
     lines:
       - {sp: 聞, text: "計算しました。50足す150足す20で、総額220万円。", step: 1, st: "あまあま", face: happy}
       - {sp: 聞, text: "家賃7万円で貸せば、年84万円。84割る220で、表面の利回り38パーセント！", step: 2, st: "あまあま", face: happy}
-      - {sp: 答, text: "表面は、ですね。経費を引いた手残りは、あとで出します。", step: 3, st: "ノーマル", face: calm}
-      - {sp: 答, text: "その前に、ここで事件が起きます。", step: 4, st: "しっとり", face: calm, pause: 0.5}
+      - {sp: 聞, text: "3年ちょっとで、元が取れる計算です。", step: 3, st: "あまあま", face: happy}
+      - {sp: 答, text: "表面は、ですね。経費を引いた手残りは、あとで出します。", step: 4, st: "ノーマル", face: calm}
+      - {sp: 答, text: "その前に、ここで事件が起きます。", step: 5, st: "しっとり", face: calm, pause: 0.5}
 
   # ---- 工事現場: 雨漏り発覚
   - id: site_a
@@ -297,13 +301,15 @@ scenes:
       - {who: ぽん太, at: right, act: stand, face: normal}
     props:
       - {kind: headline, text: "工事、1週間目", step: 1}
-      - {kind: sweat, who: ぽん太, step: 2}
-      - {kind: sign, text: "屋根裏に雨漏り", at: center, step: 3}
-    steps: 3
+      - {kind: question, who: コツさん, step: 2}
+      - {kind: sweat, who: ぽん太, step: 3}
+      - {kind: sign, text: "屋根裏に雨漏り", at: center, step: 4}
+    steps: 4
     lines:
       - {sp: 答, text: "工事が始まって、職人が屋根裏をのぞいた。", step: 1, st: "ノーマル"}
-      - {sp: 聞, text: "……嫌な予感。", step: 2, st: "ヒソヒソ", face: doubt}
-      - {sp: 答, text: "雨漏り。天井の裏が、腐っていた。", step: 3, st: "かなしみ", face: calm}
+      - {sp: 答, text: "降りてきた職人が、言いにくそうに、ちょっと、と。", step: 2, st: "しっとり", face: calm}
+      - {sp: 聞, text: "……嫌な予感。", step: 3, st: "ヒソヒソ", face: doubt}
+      - {sp: 答, text: "雨漏り。天井の裏が、腐っていた。", step: 4, st: "かなしみ", face: calm}
 
   - id: site_b
     layout: scene
@@ -332,7 +338,28 @@ scenes:
       - {sp: 答, text: "予定、150万円。", step: 1, mark: 1, st: "ノーマル"}
       - {sp: 答, text: "実際、230万円。原因は、買う前に屋根裏を見なかったこと。それだけ。", step: 2, mark: 2, st: "しっとり", face: calm}
       - {sp: 聞, text: "それだけで、80万円……。", mark: 2, st: "ノーマル", face: doubt}
+      - {sp: 答, text: "内訳で大きいのは、屋根、水回り、床、壁の順。古い家は、たいていこの順です。", mark: 2, st: "ノーマル"}
       - {sp: 答, text: "見積りの内訳の一覧表は、noteに置いてあります。概要欄から見られます。", st: "ノーマル"}
+
+  # ---- 足りない80万円: 銀行に断られ、貯金から
+  - id: bank
+    layout: scene
+    bg: bank
+    camera: still
+    chars:
+      - {who: ぽん太, at: left, act: stand, face: doubt}
+      - {who: コツさん, at: right, act: stand, face: calm}
+    props:
+      - {kind: headline, text: "足りない80万円、どうする", step: 1}
+      - {kind: cross, at: center, step: 2}
+      - {kind: sweat, who: ぽん太, step: 3}
+      - {kind: bubble, text: "貯金から", who: コツさん, step: 4}
+    steps: 4
+    lines:
+      - {sp: 聞, text: "足りない80万円は、どうしたんですか？ 銀行？", step: 1, st: "ノーマル", face: doubt}
+      - {sp: 答, text: "銀行には行った。築50年で再建築不可。貸せません、と。", step: 2, st: "かなしみ", face: calm}
+      - {sp: 聞, text: "うわ……。", step: 3, st: "ヒソヒソ", face: doubt}
+      - {sp: 答, text: "貯金から出した。だから私の1戸目は、融資なしの現金で300万円。", step: 4, st: "ノーマル", face: calm}
 
   - id: c2_total
     layout: flow
@@ -359,14 +386,16 @@ scenes:
     props:
       - {kind: photo, image: photos/room_after.jpg, caption: "直したあと：同じ場所", at: center, step: 1}
       - {kind: star, who: ぽん太, step: 2}
-      - {kind: bubble, text: "床・壁・水回り", who: コツさん, step: 3}
-      - {kind: heart, who: ぽん太, step: 4}
-    steps: 4
+      - {kind: bubble, text: "同じ場所", who: コツさん, step: 3}
+      - {kind: check, at: left, step: 4}
+      - {kind: heart, who: ぽん太, step: 5}
+    steps: 5
     lines:
       - {sp: 答, text: "4か月かけて、直りました。", step: 1, st: "喜び", face: happy}
       - {sp: 聞, text: "わっ、別の家みたい。", step: 2, st: "あまあま", face: happy}
-      - {sp: 答, text: "床、壁、水回り。中は全部。", step: 3, st: "ノーマル"}
-      - {sp: 聞, text: "これで月7万円なら、僕でも住みたい。", step: 4, st: "あまあま", face: happy}
+      - {sp: 答, text: "さっきの写真と、同じ場所です。", step: 3, st: "ノーマル"}
+      - {sp: 答, text: "床、壁、水回り。中は全部。外は、ほとんど触っていない。", step: 4, st: "ノーマル"}
+      - {sp: 聞, text: "これで月7万円なら、僕でも住みたい。", step: 5, st: "あまあま", face: happy}
 
   # ================================================================
   # 第3章: 家賃が入る日と、12戸の先（山③＝通帳、山④＝未来図と回収）
@@ -423,6 +452,7 @@ scenes:
       - {sp: 答, text: "84万円から、20万円を引いて、", step: 2, mark: 2, st: "ノーマル"}
       - {sp: 答, text: "手残り、64万円。", step: 3, mark: 3, st: "喜び", pause: 0.6}
       - {sp: 聞, text: "64万円……。300万円かけて、64万円。", mark: 3, st: "ノーマル", face: calm}
+      - {sp: 答, text: "表面で38パーセントだった利回りが、手残りで見ると21パーセント。", mark: 3, st: "ノーマル", face: calm}
 
   - id: c3_compare
     layout: compare
@@ -499,6 +529,7 @@ scenes:
       - {sp: 答, text: "さて、約束の話。1戸目で損した金額。", step: 1, st: "ノーマル"}
       - {sp: 聞, text: "5千円の欲、でしたっけ。", step: 1, st: "ノーマル"}
       - {sp: 答, text: "家賃を、7万5千円で募集に出した。相場は7万円。", step: 2, st: "しっとり", face: calm}
+      - {sp: 答, text: "直しに230万円もかけたから、少し上でもいける。そう思った。", step: 2, st: "しっとり", face: calm}
       - {sp: 答, text: "1か月、問い合わせなし。2か月、内見ゼロ。", step: 3, st: "かなしみ", face: calm}
       - {sp: 答, text: "3か月……4か月。", step: 4, st: "かなしみ", face: calm, pause: 0.6}
       - {sp: 聞, text: "たった5千円の差で？ ランチ5回分ですよ？", step: 5, st: "ツンツン", face: surprised}
@@ -529,6 +560,7 @@ scenes:
       - {sp: 答, text: "鍵を渡した日。", step: 1, st: "喜び", face: happy}
       - {sp: 聞, text: "やっと、大家さんですね。", step: 2, st: "あまあま", face: happy}
       - {sp: 答, text: "買ってから、8か月。直しに4か月、空室に4か月。", step: 3, st: "しっとり", face: calm}
+      - {sp: 聞, text: "8か月……。でも、ここから毎月7万円。", step: 3, st: "ノーマル", face: calm}
 
   # ================================================================
   # 見解 → コメントの問い → まとめ → 今日の一歩（note・次回予告）
@@ -554,12 +586,14 @@ scenes:
     props:
       - {kind: bubble, text: "昼休みに見てみます", who: ぽん太, step: 1}
       - {kind: headline, text: "あなたの地元に、100万円以下の家は？", step: 2}
-      - {kind: bubble, text: "コメントで", who: コツさん, step: 3}
-    steps: 3
+      - {kind: question, who: ぽん太, step: 3}
+      - {kind: bubble, text: "コメントで", who: コツさん, step: 4}
+    steps: 4
     lines:
       - {sp: 聞, text: "今度の昼休み、ポータルサイトで見てみます。それならできそう。", step: 1, st: "あまあま", face: happy}
       - {sp: 答, text: "それでいい。ところで、あなたの地元で、100万円以下の家、見たことありますか？", step: 2, st: "ノーマル"}
-      - {sp: 答, text: "あれば、区や市まででいいので、コメントで教えてください。", step: 3, st: "喜び", face: happy}
+      - {sp: 聞, text: "僕は、まだ気にして見たことがないです。", step: 3, st: "ノーマル", face: doubt}
+      - {sp: 答, text: "あれば、区や市まででいいので、コメントで教えてください。", step: 4, st: "喜び", face: happy}
 
   - id: wrap
     layout: flow
