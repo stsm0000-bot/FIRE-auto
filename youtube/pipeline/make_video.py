@@ -244,7 +244,7 @@ def render_body(doc: dict, sc: Scene, step: int, mark: int | None, anim: bool, p
         h.append('</div>')
     elif L in ("list", "flow"):
         items = d.get("items", [])
-        h.append(f'<div class="{L}">')
+        h.append(f'<div class="{L} n{len(items)}">')
         if d.get("heading"):
             h.append(f'<div class="h{ent(step <= 1)}">{esc(d["heading"])}</div>')
         h.append('<div class="row">')
