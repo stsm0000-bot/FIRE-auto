@@ -750,12 +750,39 @@ def _clamp_x(x_pct: float, width_px: float, W: int, margin: int = 24) -> float:
         return 50.0
     return min(max(x_pct, lo), hi)
 
-def prop_html(p: dict, kind: str, new: bool, idx: int, script_dir: Path | None, uid: str, stack: int = 0) -> str:
+def _avoid_chars(x: float, width_px: float, W: int, char_xs: list[float], taken: list[tuple[float, float]], kind: str) -> float:
+    """キャラの頭（横 ±18％）と重なる小道具を、空いている横位置へずらす。taken は既に置いた小道具の (x, 幅%)"""
+    gap = 18.0 if kind == "long" else 24.0
+    wp = width_px / W * 100
+    def ok(c: float) -> bool:
+        if abs(c - _clamp_x(c, width_px, W)) > 0.5:
+            return False
+        if any(abs(c - cx) < gap for cx in char_xs):
+            return False
+        return not any(abs(c - tx) < (wp + tw) / 2 - 2 for tx, tw in taken)
+    if ok(x):
+        return x
+    cands = [x + 30, x - 30, 50.0, x + 22, x - 22, 78.0, 22.0, x + 40, x - 40]
+    for c in cands:
+        if ok(c):
+            return c
+    for c in cands:   # 他の小道具との重なりは許し、キャラとの重なりだけ避ける
+        if abs(c - _clamp_x(c, width_px, W)) <= 0.5 and not any(abs(c - cx) < gap for cx in char_xs):
+            return c
+    return x
+
+def prop_html(p: dict, kind: str, new: bool, idx: int, script_dir: Path | None, uid: str, stack: int = 0,
+              char_xs: list[float] | None = None, taken: list[tuple[float, float]] | None = None) -> str:
     """キャラに付かない小道具 1 つの HTML（headline / bubble / 頭上の印は別）"""
     k = str(p.get("kind", ""))
     W, H, G = geometry(kind)
     text = str(p.get("text", ""))
-    x = _clamp_x(_pct(p.get("at", p.get("x", "center")), kind, PROP_X), _est_width(k, text, kind), W)
+    wpx = _est_width(k, text, kind)
+    x = _clamp_x(_pct(p.get("at", p.get("x", "center")), kind, PROP_X), wpx, W)
+    if k not in ("sign", "coins") and char_xs is not None and not p.get("x_fixed"):
+        x = _avoid_chars(x, wpx, W, char_xs, taken or [], kind)
+    if taken is not None:
+        taken.append((x, wpx / W * 100))
     cls = ["prop", f"p-{k}"]
     if new:
         cls.append("enter pop")
@@ -879,6 +906,9 @@ def render_scene(data: dict, step: int, prev_step: int, anim: bool, kind: str,
     n_new = 0
     has_hl = any(isinstance(p, dict) and str(p.get("kind", "")) == "headline" for p in (data.get("props") or []))
     at_count: dict[str, int] = {}
+    chars = [c for c in (data.get("chars") or []) if isinstance(c, dict)]
+    xs = [float(c["x"]) if c.get("x") is not None else _pct(_final_at(c.get("at", "center")), kind, AT_X) for c in chars]
+    taken: list[tuple[float, float]] = []
     for p in data.get("props") or []:
         if not isinstance(p, dict):
             continue
@@ -907,10 +937,8 @@ def render_scene(data: dict, step: int, prev_step: int, anim: bool, kind: str,
             stack = at_count.get(akey, 0)
             if k not in ("sign", "coins"):
                 at_count[akey] = stack + 1
-            free.append(prop_html(p, kind, new, idx, script_dir, uid, stack))
+            free.append(prop_html(p, kind, new, idx, script_dir, uid, stack, xs[:2], taken))
 
-    chars = [c for c in (data.get("chars") or []) if isinstance(c, dict)]
-    xs = [float(c["x"]) if c.get("x") is not None else _pct(_final_at(c.get("at", "center")), kind, AT_X) for c in chars]
     ch_html = []
     for i, c in enumerate(chars[:2]):
         others = [xx for j, xx in enumerate(xs[:2]) if j != i]

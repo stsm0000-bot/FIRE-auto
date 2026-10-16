@@ -214,11 +214,11 @@ scenes:
       - {who: ぽん太, at: left, act: shock, face: surprised}
       - {who: コツさん, at: right, act: point, face: calm}
     props:
-      - {kind: photo, image: photos/room_before.jpg, caption: "買ったとき：床と水回り", at: center, step: 1}
+      - {kind: photo, image: photos/room_before.jpg, caption: "買ったとき：床と水回り", x: 50, step: 1}
       - {kind: sweat, who: ぽん太, step: 2}
       - {kind: question, who: コツさん, step: 3}
       - {kind: bubble, text: "直しも50万円？", who: ぽん太, step: 4}
-      - {kind: price, text: "直し 150万円", at: left, step: 5}
+      - {kind: stamp, text: "150万円", x: 50, step: 5}
       - {kind: exclaim, who: ぽん太, step: 6}
     steps: 6
     lines:

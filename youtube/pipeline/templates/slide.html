@@ -251,9 +251,9 @@ html[data-kind="short"] .scene{--G:835px}
 /* 吹き出し（キャラの頭の上、内側へ寄せる。l/r/c は立ち位置） */
 .scene .bub{position:absolute;bottom:calc(100% - var(--bo,96px));font-size:54px;font-weight:900;line-height:1.2;color:var(--ink);background:#fff;border:5px solid var(--ink);border-radius:30px;padding:12px 30px;white-space:nowrap;box-shadow:0 8px 0 rgba(31,42,68,.14);z-index:7}
 .scene .bub.wrap{white-space:pre-wrap;width:max-content;max-width:640px}
-.scene .bub.l{left:56%}.scene .bub.r{right:56%}.scene .bub.c{left:50%;translate:-50% 0}
+.scene .bub.l{left:4%}.scene .bub.r{right:4%}.scene .bub.c{left:50%;translate:-50% 0}
 .scene .bub::after{content:"";position:absolute;bottom:-21px;width:30px;height:30px;background:#fff;border-right:5px solid var(--ink);border-bottom:5px solid var(--ink);transform:rotate(45deg)}
-.scene .bub.l::after{left:22px}.scene .bub.r::after{right:22px}.scene .bub.c::after{left:50%;margin-left:-15px}
+.scene .bub.l::after{left:60px}.scene .bub.r::after{right:60px}.scene .bub.c::after{left:50%;margin-left:-15px}
 html[data-kind="short"] .scene .bub{font-size:48px;--bo:110px}
 html[data-kind="short"] .scene .bub.wrap{max-width:560px}
 /* 頭上の印（汗・！・？・♥・zzz・☆） */
@@ -270,8 +270,8 @@ html[data-kind="short"] .scene .prop{--y:33%}
 html[data-kind="short"] .scene.has-hl .prop.hang{top:calc(200px + var(--st))}
 .scene.has-hl .prop:not(.hang):not(.ground){--y:52%}
 html[data-kind="short"] .scene.has-hl .prop:not(.hang):not(.ground){--y:40%}
-.scene.has-hl .bub{bottom:calc(100% - var(--bo,96px) - 120px)}
-.scene.has-hl .bub.l{left:62%}.scene.has-hl .bub.r{right:62%}
+.scene.has-hl .p-photo{--y:57%}
+.scene .photo img,.scene .photo .ph-empty{height:360px}
 .scene .price{display:flex;flex-direction:column;align-items:center}
 .scene .price .string{width:6px;height:var(--sl,140px);background:#B5651D;border-radius:3px}
 html[data-kind="short"] .scene .price .string{--sl:200px}
