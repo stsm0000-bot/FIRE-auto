@@ -30,10 +30,10 @@ scenes:
       - {sp: 答, text: "家賃を5千円欲張って、30万円損した話です。", step: 1, st: "しっとり", face: calm}
   - id: ask
     layout: scene
-    bg: office
-    camera: still
+    bg: house_new
+    camera: in
     chars:
-      - {who: コツさん, at: center, act: sit, face: normal}
+      - {who: コツさん, at: center, act: point, face: normal}
     props:
       - {kind: price, text: "相場 7万円", at: left, step: 1}
       - {kind: sign, text: "募集 7万5千円", at: right, step: 2}
