@@ -46,6 +46,10 @@ COUNTER_BG = {"desk": 70, "office": 70, "bank": 70}                  # カウン
 AREA = {"long": (1920, 1080 - 124 - 288), "short": (1080, 1920 - 124 - 778)}   # 上ピル帯 124 / 下は字幕帯＋58
 CHAR_SIZE = {"long": 420, "short": 520}
 CHAR_SIZE_2 = {"long": 420, "short": 440}            # ショートで 2 人のとき
+def _final_at(at) -> str:
+    """offleft / offright は「画面外から歩いて入る」の指定。止まる位置は left / right"""
+    return {"offleft": "left", "offright": "right"}.get(str(at), str(at))
+
 AT_X = {"long": {"left": 20, "center": 50, "right": 80, "offleft": -16, "offright": 116},
         "short": {"left": 25, "center": 50, "right": 75, "offleft": -30, "offright": 130}}
 PROP_X = {"long": {"left": 22, "center": 50, "right": 78, "offleft": -20, "offright": 120},
@@ -784,7 +788,7 @@ def char_html(c: dict, idx: int, n_chars: int, faces: dict, talking, variant: st
     if ch is None:
         return ""
     W, H, G = geometry(kind)
-    x = float(c["x"]) if c.get("x") is not None else _pct(c.get("at", "center"), kind, AT_X)
+    x = float(c["x"]) if c.get("x") is not None else _pct(_final_at(c.get("at", "center")), kind, AT_X)   # offleft/offright は left/right で止まる
     act = str(c.get("act", "stand"))
     if act not in ACTS:
         act = "stand"
@@ -876,7 +880,7 @@ def render_scene(data: dict, step: int, prev_step: int, anim: bool, kind: str,
             free.append(prop_html(p, kind, new, idx, script_dir, uid))
 
     chars = [c for c in (data.get("chars") or []) if isinstance(c, dict)]
-    xs = [float(c["x"]) if c.get("x") is not None else _pct(c.get("at", "center"), kind, AT_X) for c in chars]
+    xs = [float(c["x"]) if c.get("x") is not None else _pct(_final_at(c.get("at", "center")), kind, AT_X) for c in chars]
     ch_html = []
     for i, c in enumerate(chars[:2]):
         others = [xx for j, xx in enumerate(xs[:2]) if j != i]
