@@ -1,5 +1,5 @@
 # ショート ― 002 物語版の失敗1「直しの見積りが 150 万 → 230 万に膨らんだ」を 1 つの答えに
-# 推定尺: 文字数 × 0.155 ＋ 台詞 × 0.3 ＋ 場面 × 0.6 ＝ 約 54 秒（台詞 12・場面 6）
+# 推定尺: 文字数 × 0.155 ＋ 台詞 × 0.3 ＋ 場面 × 0.6 ＝ 約 49 秒（台詞 14・場面 6）
 # ★ 公開前に本人が確認: 見積り150→230（屋根裏の雨漏り）、点検口から見る、という確認の仕方が実態どおりか
 id: "S003"
 kind: short
@@ -41,6 +41,7 @@ scenes:
     lines:
       - {sp: 答, text: "買値50万円、築50年の家。", step: 1}
       - {sp: 答, text: "床と水回りを直す見積りが、150万円。", step: 2}
+      - {sp: 聞, text: "50万円の家で、直しが150万円！？", step: 2, st: "あまあま", face: surprised}
   - id: leak
     layout: scene
     bg: site
@@ -49,12 +50,13 @@ scenes:
       - {who: コツさん, at: center, act: think, face: calm}
     props:
       - {kind: headline, text: "工事、1週間目", step: 1}
-      - {kind: sign, text: "屋根裏に雨漏り", at: right, step: 2}
       - {kind: sweat, who: コツさん, step: 2}
-    steps: 2
+      - {kind: sign, text: "屋根裏に雨漏り", at: right, step: 3}
+    steps: 3
     lines:
       - {sp: 答, text: "工事が始まって、職人が屋根裏をのぞいた。", step: 1}
-      - {sp: 答, text: "雨漏り。天井の裏が、腐っていた。", step: 2, st: "かなしみ", face: calm}
+      - {sp: 答, text: "降りてきた職人が、言いにくそうに、ちょっと、と。", step: 2, st: "しっとり", face: calm}
+      - {sp: 答, text: "雨漏り。天井の裏が、腐っていた。", step: 3, st: "かなしみ", face: calm}
   - id: bar
     layout: bar
     heading: "直しの見積り"

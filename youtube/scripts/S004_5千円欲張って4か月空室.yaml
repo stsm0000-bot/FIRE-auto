@@ -1,5 +1,5 @@
 # ショート ― 002 物語版の失敗2「家賃を 5 千円欲張って 4 か月空室、30 万円の損」を 1 つの答えに
-# 推定尺: 文字数 × 0.155 ＋ 台詞 × 0.3 ＋ 場面 × 0.6 ＝ 約 55 秒（台詞 13・場面 6）
+# 推定尺: 文字数 × 0.155 ＋ 台詞 × 0.3 ＋ 場面 × 0.6 ＝ 約 47 秒（台詞 14・場面 6）
 # ★ 公開前に本人が確認: 相場7万・募集7万5千・空室4か月・下げて翌週に決まった、が実態どおりか
 id: "S004"
 kind: short
@@ -27,7 +27,7 @@ scenes:
       - {kind: money, text: "−30万円", at: right, step: 1}
     steps: 1
     lines:
-      - {sp: 答, text: "家賃を5千円欲張って、30万円損した話。", step: 1, st: "しっとり", face: calm}
+      - {sp: 答, text: "家賃を5千円欲張って、30万円損した話です。", step: 1, st: "しっとり", face: calm}
   - id: ask
     layout: scene
     bg: office
@@ -39,8 +39,9 @@ scenes:
       - {kind: sign, text: "募集 7万5千円", at: right, step: 2}
     steps: 2
     lines:
-      - {sp: 答, text: "直した家の相場は、7万円。", step: 1}
+      - {sp: 答, text: "直した家の、周りの相場は7万円でした。", step: 1}
       - {sp: 答, text: "私は、7万5千円で募集に出した。", step: 2, st: "ノーマル"}
+      - {sp: 聞, text: "5千円くらい、いけそうですけど。", step: 2, st: "ノーマル", face: normal}
   - id: wait
     layout: scene
     bg: desk
@@ -77,7 +78,7 @@ scenes:
       - {kind: check, at: left, step: 2}
     steps: 2
     lines:
-      - {sp: 答, text: "貸す前に、相場を確認していれば防げた。", step: 1, st: "ノーマル"}
+      - {sp: 答, text: "貸す前に、相場の家賃を確認していれば、防げた。", step: 1, st: "ノーマル"}
       - {sp: 答, text: "安い家の値段は、買値ではなく、確認で決まる。", step: 2, st: "熱血", face: fire}
   - id: ending
     layout: ending
