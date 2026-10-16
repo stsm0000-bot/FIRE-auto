@@ -1,0 +1,94 @@
+# ショート ― 002 物語版の失敗1「直しの見積りが 150 万 → 230 万に膨らんだ」を 1 つの答えに
+# 推定尺: 文字数 × 0.155 ＋ 台詞 × 0.3 ＋ 場面 × 0.6 ＝ 約 54 秒（台詞 12・場面 6）
+# ★ 公開前に本人が確認: 見積り150→230（屋根裏の雨漏り）、点検口から見る、という確認の仕方が実態どおりか
+id: "S003"
+kind: short
+title: "見積りが80万円膨らんだ理由、たった1つ #不動産投資 #大家 #ボロ戸建て"
+question: "直しの見積りが、なぜ80万円膨らんだ？"
+note_url: "https://note.com/dokechi_hudousan"
+disclaimer: "物件・数字は特定を避けるため丸めています"
+thumbnail: {big: "見積りが\n＋80万円", sub: "買う前に見なかった所"}
+publish:
+  lead: "買値50万円の戸建て。直しの見積りが150万円から230万円に膨らんだ原因は、たった1つでした。買う前の確認の話を、丸めた実数で。"
+  tags: [不動産投資, 大家, ボロ戸建て, リフォーム, 戸建て投資, Shorts]
+speakers:
+  聞: {speaker: "ずんだもん", style: "ノーマル", name: "ぽん太", color: "#2F80ED", char: "ぽん太"}
+  答: {speaker: "青山龍星", style: "ノーマル", name: "コツさん", color: "#FF7A1A", char: "コツさん"}
+voice: {speed: 1.1, intonation: 1.3}
+scenes:
+  - id: hook
+    layout: scene
+    bg: site
+    camera: shake
+    chars:
+      - {who: コツさん, at: center, act: shock, face: surprised}
+    props:
+      - {kind: headline, text: "見積り 150万円 → 230万円", step: 1}
+      - {kind: arrow, text: "＋80万円", dir: up, at: right, step: 1}
+    steps: 1
+    lines:
+      - {sp: 答, text: "直しの見積りが、80万円膨らんだ話。", step: 1, st: "しっとり", face: calm}
+  - id: before
+    layout: scene
+    bg: room_old
+    camera: in
+    chars:
+      - {who: コツさん, at: center, act: point, face: normal}
+    props:
+      - {kind: price, text: "買値 50万円", at: left, step: 1}
+      - {kind: price, text: "直し 150万円", at: right, step: 2}
+    steps: 2
+    lines:
+      - {sp: 答, text: "買値50万円、築50年の家。", step: 1}
+      - {sp: 答, text: "床と水回りを直す見積りが、150万円。", step: 2}
+  - id: leak
+    layout: scene
+    bg: site
+    camera: in
+    chars:
+      - {who: コツさん, at: center, act: think, face: calm}
+    props:
+      - {kind: headline, text: "工事、1週間目", step: 1}
+      - {kind: sign, text: "屋根裏に雨漏り", at: right, step: 2}
+      - {kind: sweat, who: コツさん, step: 2}
+    steps: 2
+    lines:
+      - {sp: 答, text: "工事が始まって、職人が屋根裏をのぞいた。", step: 1}
+      - {sp: 答, text: "雨漏り。天井の裏が、腐っていた。", step: 2, st: "かなしみ", face: calm}
+  - id: bar
+    layout: bar
+    heading: "直しの見積り"
+    rows:
+      - {label: "予定", value: 150, note: "150万円"}
+      - {label: "実際", value: 230, note: "230万円"}
+    lines:
+      - {sp: 答, text: "150万円が、230万円。", step: 2, mark: 2, st: "かなしみ"}
+      - {sp: 聞, text: "80万円って、手残り1年分より多い……。", mark: 2, st: "ノーマル", face: doubt}
+  - id: cause
+    layout: scene
+    bg: desk
+    camera: still
+    chars:
+      - {who: コツさん, at: center, act: sit, face: calm}
+    props:
+      - {kind: sign, text: "買う前に屋根裏を見なかった", at: right, step: 1}
+      - {kind: check, at: left, step: 2}
+      - {kind: bubble, text: "点検口から", who: コツさん, step: 3}
+    steps: 3
+    lines:
+      - {sp: 答, text: "原因は、買う前に屋根裏を見なかったこと。それだけ。", step: 1, st: "しっとり", face: calm}
+      - {sp: 答, text: "次からは、懐中電灯を持って、点検口から見る。", step: 2, st: "ノーマル"}
+      - {sp: 答, text: "5分の確認で、80万円が変わる。", step: 3, st: "熱血", face: fire, pause: 0.5}
+  - id: ending
+    layout: ending
+    heading: "見積りの内訳表は\nnote に"
+    sub: "屋根・水回り・床・壁の順に大きい"
+    cta: "概要欄の note ▶"
+    lines:
+      - {sp: 答, text: "見積りの内訳表は、概要欄のnoteに置いてあります。", st: "ノーマル"}
+      - {sp: 聞, text: "買う前に、屋根裏。覚えました。", st: "あまあま", face: happy, pause: 0.8}
+sns:
+  x_single:
+    - "直しの見積りが150万円から230万円に。原因は、買う前に屋根裏を見なかったこと、それだけでした。懐中電灯で点検口から5分。その5分で80万円が変わる話を60秒で。"
+  threads:
+    - "買値50万円の戸建て。床と水回りの見積りは150万円でした。工事が始まって職人が屋根裏をのぞいたら、雨漏りで天井の裏が腐っていて、見積りは230万円に。原因は、買う前に屋根裏を見なかったこと。それだけです。次からは懐中電灯を持って点検口から見るようにしました。5分の確認で80万円が変わる。みなさんは、内見でどこまで見ていますか？"

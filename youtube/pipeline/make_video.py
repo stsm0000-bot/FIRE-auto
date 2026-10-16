@@ -1084,8 +1084,14 @@ def write_publish(doc: dict, chapters: list[tuple[float, str]], total: float, ou
           f"- 種別: {'長尺' if doc['kind']=='long' else 'ショート'}  尺 {fmt_ts(total)}",
           f"- タイトル: {doc.get('title','')}",
           f"- サムネ: {thumb.name if thumb else '（thumbnail 未設定）'}",
-          f"- タグ: {', '.join(tags)}", "",
-          "## 説明文（そのまま貼る）", "```", *desc, "```"]
+          f"- タグ: {', '.join(tags)}"]
+    if doc["kind"] == "long":
+        if total >= 480:
+            cands = [(t, h) for t, h in chapters if 120 <= t <= total - 90 and not h.startswith("今日の一歩")]
+            md.append("- ミッドロール広告（手動で置く場所。章扉の直前＝話の切れ目）: " + ("、".join(fmt_ts(t) for t, _ in cands) if cands else "候補なし"))
+        else:
+            md.append(f"- ミッドロール広告: 尺が 8 分未満（{fmt_ts(total)}）なので入らない。台本を足すか、そのまま公開")
+    md += ["", "## 説明文（そのまま貼る）", "```", *desc, "```"]
     (out_dir / "publish.md").write_text("\n".join(md) + "\n", encoding="utf-8")
 
 # ---------------------------------------------------------------- 検査

@@ -1,0 +1,93 @@
+# ショート ― 002 物語版の失敗2「家賃を 5 千円欲張って 4 か月空室、30 万円の損」を 1 つの答えに
+# 推定尺: 文字数 × 0.155 ＋ 台詞 × 0.3 ＋ 場面 × 0.6 ＝ 約 55 秒（台詞 13・場面 6）
+# ★ 公開前に本人が確認: 相場7万・募集7万5千・空室4か月・下げて翌週に決まった、が実態どおりか
+id: "S004"
+kind: short
+title: "家賃を5千円欲張って、30万円損した話 #不動産投資 #大家 #空室"
+question: "5千円欲張ると、いくら損する？"
+note_url: "https://note.com/dokechi_hudousan"
+disclaimer: "物件・数字は特定を避けるため丸めています"
+thumbnail: {big: "5千円欲張り\n4か月空室", sub: "損は30万円"}
+publish:
+  lead: "相場7万円のところを7万5千円で募集したら、4か月空室。家賃4か月分、30万円の損でした。貸す前の確認の話を、丸めた実数で。"
+  tags: [不動産投資, 大家, 空室対策, 戸建て投資, 家賃, Shorts]
+speakers:
+  聞: {speaker: "ずんだもん", style: "ノーマル", name: "ぽん太", color: "#2F80ED", char: "ぽん太"}
+  答: {speaker: "青山龍星", style: "ノーマル", name: "コツさん", color: "#FF7A1A", char: "コツさん"}
+voice: {speed: 1.1, intonation: 1.3}
+scenes:
+  - id: hook
+    layout: scene
+    bg: office
+    camera: in
+    chars:
+      - {who: コツさん, at: center, act: sit, face: calm}
+    props:
+      - {kind: headline, text: "5千円欲張って、30万円の損", step: 1}
+      - {kind: money, text: "−30万円", at: right, step: 1}
+    steps: 1
+    lines:
+      - {sp: 答, text: "家賃を5千円欲張って、30万円損した話。", step: 1, st: "しっとり", face: calm}
+  - id: ask
+    layout: scene
+    bg: office
+    camera: still
+    chars:
+      - {who: コツさん, at: center, act: sit, face: normal}
+    props:
+      - {kind: price, text: "相場 7万円", at: left, step: 1}
+      - {kind: sign, text: "募集 7万5千円", at: right, step: 2}
+    steps: 2
+    lines:
+      - {sp: 答, text: "直した家の相場は、7万円。", step: 1}
+      - {sp: 答, text: "私は、7万5千円で募集に出した。", step: 2, st: "ノーマル"}
+  - id: wait
+    layout: scene
+    bg: desk
+    time: night
+    camera: in
+    chars:
+      - {who: コツさん, at: center, act: sit, face: calm}
+    props:
+      - {kind: zzz, who: コツさん, step: 1}
+      - {kind: calendar, text: "4か月", at: right, step: 2}
+      - {kind: stamp, text: "空室", at: left, step: 3}
+    steps: 3
+    lines:
+      - {sp: 答, text: "1か月、問い合わせなし。2か月、内見ゼロ。", step: 1, st: "かなしみ", face: calm}
+      - {sp: 答, text: "3か月……4か月。", step: 2, st: "かなしみ", face: calm, pause: 0.6}
+      - {sp: 聞, text: "たった5千円の差で？", step: 3, st: "ツンツン", face: surprised}
+  - id: compare
+    layout: compare
+    left:  {title: "7万5千円で募集", tone: bad,  items: ["4か月、反応なし", "空室4か月 ＝ 30万円の損"]}
+    right: {title: "7万円に下げた", tone: good, items: ["翌週に決まった", "差は月5千円＝年6万円"]}
+    lines:
+      - {sp: 答, text: "家賃4か月分、30万円の損。", step: 1, st: "かなしみ"}
+      - {sp: 答, text: "7万円に下げたら、翌週に決まった。", step: 2, st: "ノーマル"}
+      - {sp: 聞, text: "下げた5千円は、年にして6万円……。", st: "ノーマル", face: doubt}
+      - {sp: 答, text: "30万円を取り戻すのに、5年。", st: "しっとり", face: calm, pause: 0.5}
+  - id: lesson
+    layout: scene
+    bg: house_new
+    camera: out
+    chars:
+      - {who: コツさん, at: center, act: stand, face: normal}
+    props:
+      - {kind: sign, text: "貸す前に、相場を確認", at: right, step: 1}
+      - {kind: check, at: left, step: 2}
+    steps: 2
+    lines:
+      - {sp: 答, text: "貸す前に、相場を確認していれば防げた。", step: 1, st: "ノーマル"}
+      - {sp: 答, text: "安い家の値段は、買値ではなく、確認で決まる。", step: 2, st: "熱血", face: fire}
+  - id: ending
+    layout: ending
+    heading: "50万円の家を買って\n家賃が入るまでの全部"
+    sub: "見積りが膨らんだ話も"
+    cta: "続きは長尺で ▶"
+    lines:
+      - {sp: 答, text: "50万円の家を買って家賃が入るまでの全部は、長尺で。", pause: 0.8}
+sns:
+  x_single:
+    - "家賃を5千円欲張って、4か月空室。30万円の損でした。下げた5千円は年6万円、取り戻すのに5年。貸す前に相場を確認していれば防げた話を60秒で。"
+  threads:
+    - "直した家の相場は7万円。私は7万5千円で募集に出しました。1か月、問い合わせなし。2か月、内見ゼロ。4か月たって7万円に下げたら、翌週に決まりました。空室4か月で30万円の損。下げた5千円は年にして6万円なので、取り戻すのに5年。貸す前に相場を確認していれば防げたことでした。みなさんは、募集の家賃をどうやって決めていますか？"

@@ -1,4 +1,6 @@
-# ショート ― 002 の「1戸の数字」を 1 問 1 答に（楽しいトーン版）
+# ショート ― 002 物語版の「1戸の数字」を 1 問 1 答に（コツさん中心・図解と scene を交互に）
+# 推定尺: 文字数 × 0.155 ＋ 台詞 × 0.3 ＋ 場面 × 0.6 ＝ 約 52 秒（台詞 12・場面 6）
+# ★ 公開前に本人が確認: 買値50・直し230・諸費用20・家賃7万・経費と空室20万・手残り64万（長尺 002 と同じ数字）
 id: "S002"
 kind: short
 title: "50万円の戸建て、1年でいくら残る？ #不動産投資 #大家 #戸建て投資"
@@ -7,32 +9,50 @@ note_url: "https://note.com/dokechi_hudousan"
 disclaimer: "物件・数字は特定を避けるため丸めています"
 thumbnail: {big: "50万円の\n戸建て", sub: "1年の手残りは"}
 publish:
-  lead: "買値50万円・直し150万円・家賃7万円の戸建て。1年の手残りを、経費を引いて出します。丸めた実数です。"
+  lead: "買値50万円・直し230万円・諸費用20万円の戸建て。家賃7万円で貸して、1年の手残りを経費を引いて出します。丸めた実数です。"
   tags: [不動産投資, 大家, 戸建て投資, ボロ戸建て, Shorts]
 speakers:
-  聞: {speaker: "ずんだもん", style: "ノーマル", name: "聞き手", color: "#2F80ED"}
-  答: {speaker: "青山龍星", style: "ノーマル", name: "大家", color: "#FF7A1A"}
+  聞: {speaker: "ずんだもん", style: "ノーマル", name: "ぽん太", color: "#2F80ED", char: "ぽん太"}
+  答: {speaker: "青山龍星", style: "ノーマル", name: "コツさん", color: "#FF7A1A", char: "コツさん"}
 voice: {speed: 1.1, intonation: 1.3}
 scenes:
   - id: hook
-    layout: counter
-    heading: "買値"
-    value: 50
-    unit: "万円"
-    sub: "築50年の戸建て"
-    dur: 1.0
+    layout: scene
+    bg: house_old
+    camera: in
+    chars:
+      - {who: コツさん, at: center, act: point, face: happy}
+    props:
+      - {kind: headline, text: "買値50万円 → 1年で残るのは？", step: 1}
+      - {kind: price, text: "50万円", at: right, step: 1}
+    steps: 1
     lines:
-      - {sp: 答, text: "買値50万円の戸建て。直して貸すと、1年でいくら残ると思います？", st: "喜び"}
-      - {sp: 聞, text: "えっ、50万円で家！？", st: "あまあま", face: surprised}
+      - {sp: 答, text: "買値50万円の家。貸すと、1年でいくら残る？", step: 1, st: "喜び", face: happy}
+  - id: guess
+    layout: scene
+    bg: desk
+    time: night
+    camera: still
+    chars:
+      - {who: ぽん太, at: center, act: sit, face: happy}
+    props:
+      - {kind: bubble, text: "84万円！", who: ぽん太, step: 1}
+      - {kind: sweat, who: ぽん太, step: 2}
+    steps: 2
+    lines:
+      - {sp: 聞, text: "家賃7万円なら、年84万円！", step: 1, st: "あまあま", face: happy}
+      - {sp: 聞, text: "……たぶん、そう甘くないですよね。", step: 2, st: "ノーマル", face: doubt}
   - id: cost
     layout: flow
     heading: "かかったお金"
     items:
       - {text: "買値", value: "50万円"}
-      - {text: "直し", value: "150万円", op: "＋"}
-      - {text: "合計", value: "200万円", op: "＝", sum: true}
+      - {text: "直し", value: "230万円", op: "＋"}
+      - {text: "諸費用", value: "20万円", op: "＋"}
+      - {text: "総額", value: "300万円", op: "＝", sum: true}
     lines:
-      - {sp: 答, text: "買値50万円に、直しが150万円。合わせて200万円。", step: 3}
+      - {sp: 答, text: "まず、かかったお金。買値50万円に、直し230万円。", step: 2, mark: 2}
+      - {sp: 答, text: "諸費用20万円で、総額300万円。", step: 4, mark: 4, st: "喜び"}
   - id: rent
     layout: flow
     heading: "1年の家賃と手残り"
@@ -41,16 +61,32 @@ scenes:
       - {text: "税・修繕・空室", value: "20万円", op: "−"}
       - {text: "手残り", value: "64万円", op: "＝", sum: true}
     lines:
-      - {sp: 答, text: "家賃は月7万円。1年で84万円！", step: 1, st: "喜び"}
-      - {sp: 聞, text: "おお、200万円で84万円なら、すごくないですか？", mark: 1, face: happy}
-      - {sp: 答, text: "ちょっと待って。固定資産税、修繕の積み立て、空室1か月ぶんで20万円を引きます。", step: 2}
-      - {sp: 答, text: "手残りは64万円。3年ちょっとで、かけたお金が戻る計算です。", step: 3, mark: 3, st: "喜び"}
-      - {sp: 聞, text: "簡単ではないですよね？", st: "ツンツン", face: doubt, mark: 2}
-      - {sp: 答, text: "簡単ではない。でも、大金がないと始められない、は違います。", st: "熱血", mark: 3}
+      - {sp: 答, text: "家賃は月7万円。1年で84万円。", step: 1, mark: 1, st: "喜び"}
+      - {sp: 答, text: "固定資産税、修繕の積み立て、空室1か月で20万円を引く。", step: 2, mark: 2}
+      - {sp: 答, text: "手残り、64万円。", step: 3, mark: 3, st: "喜び", pause: 0.5}
+      - {sp: 聞, text: "300万円かけて、64万円。5年弱で戻る計算。", mark: 3, st: "ノーマル", face: calm}
+  - id: bankbook
+    layout: scene
+    bg: bankbook
+    camera: in
+    chars:
+      - {who: コツさん, at: center, act: stand, face: happy}
+    props:
+      - {kind: money, text: "7万円", at: right, step: 1}
+      - {kind: bubble, text: "毎月", who: コツさん, step: 2}
+    steps: 2
+    lines:
+      - {sp: 答, text: "この7万円が、毎月、通帳に入る。", step: 1, st: "喜び", face: happy}
+      - {sp: 答, text: "楽ではない。ただ、大金がないと始められない、は違う。", step: 2, st: "熱血", face: fire}
   - id: ending
     layout: ending
     heading: "ポータルで\n「50万〜300万円・戸建て」を眺める"
     sub: "買わなくていい"
-    cta: "道筋は長尺の動画で ▶"
+    cta: "見積りが膨らんだ話は長尺で ▶"
     lines:
-      - {sp: 答, text: "今日の一歩。ポータルサイトで、50万から300万円の戸建てを眺めてみてください。買わなくていい。", pause: 0.8}
+      - {sp: 答, text: "今日の一歩。ポータルで50万から300万円の戸建てを眺める。買わなくていい。", pause: 0.8}
+sns:
+  x_single:
+    - "買値50万円の戸建て、1年でいくら残る？ 家賃84万円から、税・修繕・空室の20万円を引いて64万円。かかったお金は直しと諸費用を足して300万円。5年弱で戻る計算です。60秒で。"
+  threads:
+    - "買値50万円の戸建て。家賃7万円で貸すと年84万円。ここから固定資産税3万・修繕の積み立て10万・空室1か月ぶん7万を引いて、手残りは64万円。かかったお金は、買値50万＋直し230万＋諸費用20万で300万円。5年弱で戻る計算です。「50万円の家」を「300万円の家」として見ると、買える家とやめておく家が分かれます。あなたなら、300万円で年64万円、どう感じますか？"
