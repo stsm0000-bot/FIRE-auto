@@ -545,7 +545,7 @@ def main() -> int:
         check_banned("pinned_comment", t, warnings)
         if "note.com" not in t and PH_NOTE not in t:
             warnings.append("pinned_comment: note の URL が入っていません")
-        elif "note.com" in t and "/n/" not in t:
+        elif has_sns and "note.com" in t and "/n/" not in t:
             warnings.append(f"pinned_comment: note の URL がトップページです（記事の URL …/n/{NOTE_MARK} にして、公開後に置き換える）")
         emit("pinned_comment.txt", t)
 
