@@ -345,11 +345,11 @@ def render_png(chrome: str, html: str, out_png: Path, size: tuple[int, int]) -> 
     html_path = out.with_suffix(".html")
     html_path.write_text(html, encoding="utf-8")
     run([chrome, "--headless=new", "--no-sandbox", "--disable-gpu", "--hide-scrollbars",
-         "--force-device-scale-factor=1", f"--window-size={size[0]},{size[1]}",
+         "--force-device-scale-factor=1", f"--window-size={size[0]},{size[1] + 240}",   # headless の窓は上部が削れるので縦に余裕
          "--virtual-time-budget=2000", f"--screenshot={out}", html_path.resolve().as_uri() + "?static"])
     im = Image.open(out)
-    if im.size != size:  # 念のため寸法を揃える
-        im = im.convert("RGB").resize(size)
+    if im.size != size:  # 余った下を切って寸法を揃える（引き伸ばさない）
+        im = im.convert("RGB").crop((0, 0, size[0], size[1]))
         im.save(out)
     return out
 
