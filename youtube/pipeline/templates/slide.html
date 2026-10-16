@@ -190,6 +190,12 @@ html[data-kind="short"] .ph .ph-empty{height:420px}
 .ph.after .tag{background:var(--accent)}
 .ph .cap{margin:16px 0 18px;font-size:var(--fs-note);color:var(--ink);font-weight:900}
 .title .big.long{font-size:calc(var(--fs-big) * .72)}
+/* キャラ紹介つきで見出しが 2 行のとき: 詰める */
+.title.compact .sub{margin-top:18px;font-size:calc(var(--fs-h) * .8)}
+.title.compact .cast{margin-top:22px;gap:80px}
+.title.compact .castc svg{width:190px;height:190px}
+.title.compact .cname{font-size:34px}
+.title.compact .cdesc{font-size:26px;max-width:520px}
 /* ---- scene ---- */
 /* 物語シーン（scenes.py が {{BODY}} に入れる）。上のピル帯 124px と下の字幕帯を避けた領域に絶対配置する */
 .scene{position:absolute;left:0;right:0;top:124px;bottom:calc(var(--subband) + 58px);overflow:hidden;background:var(--paper);--G:548px;z-index:1}
@@ -255,10 +261,17 @@ html[data-kind="short"] .scene .bub.wrap{max-width:560px}
 .scene .hm.l,.scene .hm.c{left:70%}.scene .hm.r{right:70%}
 .scene .hm-svg{width:100%;height:100%;overflow:visible;display:block}
 /* 小道具: --x は横位置（%）。浮くものは --y、ground は地面、hang は上から吊る */
-.scene .prop{position:absolute;left:var(--x,50%);top:var(--y,43%);translate:-50% -50%;z-index:6;transform-origin:50% 50%;width:max-content}
+.scene .prop{position:absolute;left:var(--x,50%);--st:calc(var(--stack,0) * 170px);top:calc(var(--y,43%) + var(--st));translate:-50% -50%;z-index:6;transform-origin:50% 50%;width:max-content}
 html[data-kind="short"] .scene .prop{--y:33%}
 .scene .prop.ground{top:auto;bottom:calc(100% - var(--G));translate:-50% 0;transform-origin:50% 100%}
-.scene .prop.hang{top:0;translate:-50% 0;transform-origin:50% 0}
+.scene .prop.hang{top:var(--st);translate:-50% 0;transform-origin:50% 0}
+/* 大テロップがある場面: 吊り物はテロップの下から、浮く物と写真は少し下へ、吹き出しは頭の横へ */
+.scene.has-hl .prop.hang{top:calc(104px + var(--st))}
+html[data-kind="short"] .scene.has-hl .prop.hang{top:calc(200px + var(--st))}
+.scene.has-hl .prop:not(.hang):not(.ground){--y:52%}
+html[data-kind="short"] .scene.has-hl .prop:not(.hang):not(.ground){--y:40%}
+.scene.has-hl .bub{bottom:calc(100% - var(--bo,96px) - 120px)}
+.scene.has-hl .bub.l{left:62%}.scene.has-hl .bub.r{right:62%}
 .scene .price{display:flex;flex-direction:column;align-items:center}
 .scene .price .string{width:6px;height:var(--sl,140px);background:#B5651D;border-radius:3px}
 html[data-kind="short"] .scene .price .string{--sl:200px}

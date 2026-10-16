@@ -728,16 +728,40 @@ def _counter_html(p: dict, anim_new: bool) -> str:
     lb = f'<div class="lb">{esc(p["label"])}</div>' if p.get("label") else ""
     return f'<div class="cnt">{lb}<div class="v">{v}<small>{esc(p.get("unit", ""))}</small></div></div>'
 
-def prop_html(p: dict, kind: str, new: bool, idx: int, script_dir: Path | None, uid: str) -> str:
+def _est_width(k: str, text: str, kind: str) -> float:
+    """小道具のおおよその幅（px）。画面端で切れないように横位置を寄せる判断に使う"""
+    n = max(1, len(text))
+    if k == "price":
+        fs = 124 if n <= 4 else (112 if n <= 7 else 96)
+        if kind == "short" and n > 6: fs = 84
+        return fs * n * 0.98 + 120
+    if k == "sign":
+        return min(560, (74 if n <= 6 else 60) * n + 90)
+    if k == "arrow":
+        return max(220, 60 * n + 40)
+    if k == "money":
+        return max(300, 72 * n)
+    return {"calendar": 340, "stamp": 320, "coins": 260, "cross": 360, "check": 360, "photo": 600, "counter": 440}.get(k, 300)
+
+def _clamp_x(x_pct: float, width_px: float, W: int, margin: int = 24) -> float:
+    half = width_px / 2 + margin
+    lo, hi = half / W * 100, 100 - half / W * 100
+    if lo >= hi:
+        return 50.0
+    return min(max(x_pct, lo), hi)
+
+def prop_html(p: dict, kind: str, new: bool, idx: int, script_dir: Path | None, uid: str, stack: int = 0) -> str:
     """キャラに付かない小道具 1 つの HTML（headline / bubble / 頭上の印は別）"""
     k = str(p.get("kind", ""))
     W, H, G = geometry(kind)
-    x = _pct(p.get("at", p.get("x", "center")), kind, PROP_X)
+    text = str(p.get("text", ""))
+    x = _clamp_x(_pct(p.get("at", p.get("x", "center")), kind, PROP_X), _est_width(k, text, kind), W)
     cls = ["prop", f"p-{k}"]
     if new:
         cls.append("enter pop")
     style = [f"--x:{x:.1f}%", f"--i:{idx}"]
-    text = str(p.get("text", ""))
+    if stack:
+        style.append(f"--stack:{stack}")
     if k == "price":
         cls.append("hang")
         n = len(text)
@@ -853,6 +877,8 @@ def render_scene(data: dict, step: int, prev_step: int, anim: bool, kind: str,
     free: list[str] = []
     headline = ""
     n_new = 0
+    has_hl = any(isinstance(p, dict) and str(p.get("kind", "")) == "headline" for p in (data.get("props") or []))
+    at_count: dict[str, int] = {}
     for p in data.get("props") or []:
         if not isinstance(p, dict):
             continue
@@ -877,7 +903,11 @@ def render_scene(data: dict, step: int, prev_step: int, anim: bool, kind: str,
             who = str(p.get("who", ""))
             attached.setdefault(who, []).append(f'<div class="hm {{SIDE}} hm-{k}{ent}" style="--i:{idx}">{_mark_svg(k)}</div>')
         else:
-            free.append(prop_html(p, kind, new, idx, script_dir, uid))
+            akey = str(p.get("at", p.get("x", "center")))
+            stack = at_count.get(akey, 0)
+            if k not in ("sign", "coins"):
+                at_count[akey] = stack + 1
+            free.append(prop_html(p, kind, new, idx, script_dir, uid, stack))
 
     chars = [c for c in (data.get("chars") or []) if isinstance(c, dict)]
     xs = [float(c["x"]) if c.get("x") is not None else _pct(_final_at(c.get("at", "center")), kind, AT_X) for c in chars]
@@ -886,7 +916,7 @@ def render_scene(data: dict, step: int, prev_step: int, anim: bool, kind: str,
         others = [xx for j, xx in enumerate(xs[:2]) if j != i]
         ch_html.append(char_html(c, i, len(chars[:2]), faces, talking, variant, kind, start, attached.get(str(c.get("who", "")), []), others, bg))
 
-    return (f'<div class="scene bg-{bg}" data-bg="{bg}" data-time="{time}" data-weather="{weather}" data-cam="{cam}" data-anim="{1 if start else 0}">'
+    return (f'<div class="scene bg-{bg}{" has-hl" if has_hl else ""}" data-bg="{bg}" data-time="{time}" data-weather="{weather}" data-cam="{cam}" data-anim="{1 if start else 0}">'
             f'<div class="cam">{back}<div class="chars">{"".join(ch_html)}</div>{front}<div class="props">{"".join(free)}</div></div>'
             f'{headline}</div>')
 

@@ -226,7 +226,8 @@ def render_body(doc: dict, sc: Scene, step: int, mark: int | None, anim: bool, p
         hd = str(d.get("heading", ""))
         longest = max((len(x) for x in hd.split("\n")), default=0)
         size_cls = " long" if longest > 18 else ""
-        h.append(f'<div class="title"><div class="big{size_cls}{ent(True)}">{esc(hd)}</div>')
+        compact = " compact" if (d.get("cast") and ("\n" in hd or d.get("sub"))) else ""
+        h.append(f'<div class="title{compact}"><div class="big{size_cls}{ent(True)}">{esc(hd)}</div>')
         if d.get("sub"):
             h.append(f'<div class="sub{ent(True)}" style="--i:2">{esc(d["sub"])}</div>')
         if d.get("cast"):
