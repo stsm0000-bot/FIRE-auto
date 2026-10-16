@@ -300,10 +300,10 @@ def bg_street(b: BG):
     b.far.append(hills(W, G - 30, P["hill"], P["hill2"]))
     base = G - 34
     walls = ("#FFFFFF", "#FFF1DC", "#E8F5E9", "#FFF8E7"); roofs = (ACCENT, INK, GREEN, "#C86B3C")
-    step = 440 if not b.short else 400
+    step = 520 if not b.short else 440
     k = 0; x = -120
     while x < W + 200:
-        b.house(x, base, 300, 170, walls[k % 4], roofs[k % 4], nwin=2, chimney=(k % 3 == 1), roof_h=90)
+        b.house(x, base, 360, 215, walls[k % 4], roofs[k % 4], nwin=2, chimney=(k % 3 == 1), roof_h=110)
         if k % 2 == 0:
             b.mid.append(tree(x + step * .5, base, .8))
         x += step; k += 1
@@ -375,11 +375,12 @@ def bg_room_old(b: BG):
     if b.night:
         b.glow.append(_circ(W * .4, 94, 26, "#FFE082") + _circ(W * .4, 94, 70, "#FFE082", extra=' opacity=".22"'))
     # 残置物
-    bx = W * .12
+    bx = W * .03 if not b.short else W * .02
     b.mid.append(_rect(bx, G - 110, 150, 110, "#C9A26B", 6, 5) + _rect(bx, G - 110, 150, 22, "#B08B52") + _rect(bx + 60, G - 110, 30, 110, "#E0CDA4"))
     b.mid.append(_rect(bx + 40, G - 190, 110, 80, "#C9A26B", 6, 5) + _rect(bx + 40, G - 190, 110, 18, "#B08B52"))
-    b.mid.append(_path(f"M{W * .86:.0f} {G - 100} l-14 100 h90 l-14 -100 Z", "#8FA6B8", 5) + _path(f"M{W * .86 - 10:.0f} {G - 100} q45 -60 90 0", sw=5))   # バケツ
-    b.mid.append(_path(f"M{W * .8:.0f} {G} l20 -140 l40 -10 l-40 150 Z", "#9E9E9E", 4))   # 立てかけた板
+    kx = W * .93 if not b.short else W * .9
+    b.mid.append(_path(f"M{kx:.0f} {G - 100} l-14 100 h90 l-14 -100 Z", "#8FA6B8", 5) + _path(f"M{kx - 10:.0f} {G - 100} q45 -60 90 0", sw=5))   # バケツ
+    b.mid.append(_path(f"M{W * .6:.0f} {G} l20 -140 l40 -10 l-40 150 Z", "#9E9E9E", 4))   # 立てかけた板
     # 畳
     b.ground("#B9B46A")
     for x in range(-160, W + 320, 300):
@@ -408,8 +409,9 @@ def bg_room_new(b: BG):
     if b.night:
         b.glow.append(_path(f"M{lx - 50:.0f} 96 l20 -48 h60 l20 48 Z", "#FFE082") + _ellipse(lx, 110, 110, 40, "#FFE082", extra=' opacity=".25"'))
     # 棚と観葉植物
-    b.mid.append(_rect(W * .86 - 70, G - 150, 140, 14, "#8D6E63", 4, 4) + _rect(W * .86 - 44, G - 196, 30, 46, BLUE, 4, 4) + _rect(W * .86 - 6, G - 190, 26, 40, GREEN, 4, 4) + _rect(W * .86 + 26, G - 200, 20, 50, ACCENT, 4, 4))
-    b.mid.append(plant(W * .12, G, 1.1))
+    sx = W * .95 if not b.short else W * .93
+    b.mid.append(_rect(sx - 70, G - 150, 140, 14, "#8D6E63", 4, 4) + _rect(sx - 44, G - 196, 30, 46, BLUE, 4, 4) + _rect(sx - 6, G - 190, 26, 40, GREEN, 4, 4) + _rect(sx + 26, G - 200, 20, 50, ACCENT, 4, 4))
+    b.mid.append(plant(W * .05 if not b.short else W * .07, G, 1.1))
     # フローリング
     b.ground("#EAD2AE")
     for k in range(6):
@@ -482,19 +484,19 @@ def bg_desk(b: BG):
     b.ground("#D9CBB0")
     top = _counter(b, "#D7B98A", "#C9A97A", "#B48E62")
     # 机の上: スタンド（左）・ノート・電卓・コーヒー（右）
-    lx = W * .2 if not b.short else W * .16
+    lx = W * .06 if not b.short else W * .11
     b.fore.append(_rect(lx - 50, top - 10, 100, 12, "#555", 4, 4) + _rect(lx - 7, top - 150, 14, 142, "#555", 4, 4) +
                   _path(f"M{lx - 70:.0f} {top - 150} l40 -70 h110 l40 70 Z", "#2F80ED" if not b.night else "#FFE082", 5))
     if b.night:
         b.glow.append(_path(f"M{lx - 70:.0f} {top - 150} l100 110 h0 Z", "#FFE082", extra=' opacity=".0"') +
                       _path(f"M{lx - 80:.0f} {top - 150} L{lx + 140:.0f} {top - 150} L{lx + 240:.0f} {top + 10} L{lx - 180:.0f} {top + 10} Z", "#FFE082", extra=' opacity=".22"'))
-    nx = W * .36 if not b.short else W * .36
+    nx = W * .34 if not b.short else W * .36
     b.fore.append(f'<g transform="rotate(-6 {nx:.0f} {top - 20})">' + _rect(nx - 90, top - 70, 180, 64, "#FFFFFF", 6, 5) + _path(f"M{nx:.0f} {top - 70} v64", sw=4, stroke="#C8C8C8") +
                   "".join(_path(f"M{nx - 72:.0f} {top - 54 + k * 14} h56 M{nx + 16:.0f} {top - 54 + k * 14} h56", sw=3, stroke="#BBB") for k in range(4)) + '</g>')
-    cx = W * .72 if not b.short else W * .68
+    cx = W * .64 if not b.short else W * .68
     b.fore.append(_rect(cx - 60, top - 90, 120, 84, "#3B4A66", 8, 5) + _rect(cx - 46, top - 78, 92, 22, "#CFEFFF", 3) +
                   "".join(_rect(cx - 46 + (k % 3) * 32, top - 48 + (k // 3) * 20, 26, 14, "#DDE3EE", 3) for k in range(6)))
-    mx = W * .88 if not b.short else W * .88
+    mx = W * .94 if not b.short else W * .9
     b.fore.append(_path(f"M{mx - 34:.0f} {top - 60} h68 l-8 56 h-52 Z", "#FFFFFF", 5) + _path(f"M{mx + 34:.0f} {top - 50} q30 0 24 30 q-4 14 -30 12", sw=5) +
                   _path(f"M{mx - 12:.0f} {top - 76} q-8 -16 0 -30 M{mx + 10:.0f} {top - 78} q-8 -16 0 -30", sw=4, stroke="#B5B5B5"))
 
@@ -559,17 +561,18 @@ def bg_site(b: BG):
     # マスキング（青テープ）
     b.far.append(_rect(-160, G - 44, W + 320, 10, "#4FA3E0"))
     # 脚立（左）
-    lx = W * .14 if not b.short else W * .16
+    lx = W * .06 if not b.short else W * .12
     b.mid.append(_path(f"M{lx - 60:.0f} {G} L{lx - 24:.0f} {G - 300} H{lx + 24:.0f} L{lx + 60:.0f} {G} M{lx - 50:.0f} {G - 70} h100 M{lx - 42:.0f} {G - 140} h84 M{lx - 34:.0f} {G - 210} h68", sw=10, stroke="#A7AEB7"))
     b.mid.append(_path(f"M{lx - 60:.0f} {G} L{lx - 24:.0f} {G - 300} H{lx + 24:.0f} L{lx + 60:.0f} {G} M{lx - 50:.0f} {G - 70} h100 M{lx - 42:.0f} {G - 140} h84 M{lx - 34:.0f} {G - 210} h68", sw=4))
     # ペンキ缶・ローラー・工具箱（右）
-    px = W * .84 if not b.short else W * .82
+    px = W * .91 if not b.short else W * .86
     for dx, col, label in ((0, "#FFFFFF", ACCENT), (110, "#FFFFFF", GREEN)):
         b.mid.append(_rect(px + dx - 44, G - 96, 88, 96, col, 6, 5) + _rect(px + dx - 44, G - 70, 88, 34, label) + _path(f"M{px + dx - 48:.0f} {G - 92} q48 -40 96 0", sw=5))
     b.mid.append(_path(f"M{px - 120:.0f} {G - 30} l-60 -150", sw=8, stroke="#8E8E8E") + _rect(px - 214, G - 214, 70, 36, ACCENT, 10, 5))   # ローラー
-    b.mid.append(_rect(px + 210, G - 70, 150, 70, RED, 8, 5) + _rect(px + 260, G - 90, 50, 24, RED, 6, 5) + _path(f"M{px + 210:.0f} {G - 40} h150", sw=4))
-    b.mid.append(_path(f"M{W * .55:.0f} {G - 10} l80 -40", sw=10, stroke="#8D6E63") + _rect(W * .55 + 70, G - 70, 44, 36, "#777", 6, 4))   # かなづち
-    b.mid.append(_rect(W * .66, G - 46, 120, 40, "#555", 10, 5) + _rect(W * .66 + 120, G - 36, 40, 10, "#999", 3, 3) + _rect(W * .66 + 30, G - 10, 40, 12, "#555", 3))   # ドリル
+    tx = W * .62 if not b.short else W * .56
+    b.mid.append(_rect(tx, G - 70, 150, 70, RED, 8, 5) + _rect(tx + 50, G - 90, 50, 24, RED, 6, 5) + _path(f"M{tx:.0f} {G - 40} h150", sw=4))   # 工具箱
+    b.mid.append(_path(f"M{W * .36:.0f} {G - 10} l80 -40", sw=10, stroke="#8D6E63") + _rect(W * .36 + 70, G - 70, 44, 36, "#777", 6, 4))   # かなづち
+    b.mid.append(_rect(W * .46, G - 46, 120, 40, "#555", 10, 5) + _rect(W * .46 + 120, G - 36, 40, 10, "#999", 3, 3) + _rect(W * .46 + 30, G - 10, 40, 12, "#555", 3))   # ドリル
     # 床: 合板＋養生シート
     b.ground("#D9C9A8")
     b.near.append(_path(" ".join(f"M{x} {G} V{H + 20}" for x in range(-160, W + 320, 220)), sw=3, stroke="#C5B48E"))
@@ -595,7 +598,7 @@ def bg_night(b: BG):
         lx = W * fx
         b.mid.append(_rect(lx - 8, G - 30 - 330, 16, 330, "#4A5578", 4, 3) + _rect(lx - 46, G - 30 - 360, 92, 34, "#4A5578", 8, 3))
         b.glow.append(_rect(lx - 36, G - 30 - 350, 72, 18, "#FFF3B0", 6) + _path(f"M{lx - 36:.0f} {G - 30 - 332} L{lx - 150:.0f} {G - 30} H{lx + 150:.0f} L{lx + 36:.0f} {G - 30 - 332} Z", "#FFE082", extra=' opacity=".16"'))
-    vx = W * .7 if not b.short else W * .5
+    vx = W * .62 if not b.short else W * .5
     b.mid.append(_rect(vx - 70, G - 30 - 230, 140, 230, "#3A4A80", 8, 4) + _rect(vx - 54, G - 30 - 210, 108, 110, "#1B2755", 4, 3))
     b.glow.append(_rect(vx - 54, G - 30 - 210, 108, 110, "#9FD8FF", 4, extra=' opacity=".85"') + "".join(_circ(vx - 36 + i * 24, G - 30 - 160, 9, c) for i, c in enumerate((RED, ACCENT, GREEN, BLUE))))
     b.mid.append(_rect(vx - 120 - 100, G - 90, 150, 14, "#8D6E63", 4, 3) + _rect(vx - 120 - 90, G - 76, 10, 46, "#8D6E63") + _rect(vx - 120 - 40, G - 76, 10, 46, "#8D6E63"))   # ベンチ
@@ -795,7 +798,7 @@ def char_html(c: dict, idx: int, n_chars: int, faces: dict, talking, variant: st
         facing = "left" if others[0] < 50 else "right"
     size = CHAR_SIZE[kind] if n_chars <= 1 else CHAR_SIZE_2[kind]
     body = ch["svg"](expr, mouth, blink, act=act, facing=facing)
-    svg = (f'<svg class="body" viewBox="0 0 300 300"><defs><filter id="chsh{idx}" x="-20%" y="-20%" width="140%" height="140%">'
+    svg = (f'<svg class="chsvg" viewBox="0 0 300 300"><defs><filter id="chsh{idx}" x="-20%" y="-20%" width="140%" height="140%">'
            f'<feDropShadow dx="0" dy="6" stdDeviation="0" flood-color="{INK}" flood-opacity=".18"/></filter></defs>'
            f'<g filter="url(#chsh{idx})">{body}</g></svg>')
     cls = ["ch", f"act-{act}", f"who-{idx}"]
@@ -829,8 +832,10 @@ def render_scene(data: dict, step: int, prev_step: int, anim: bool, kind: str,
     bg = str(data.get("bg", "blank"))
     if bg not in BGS:
         bg = "blank"
-    time = str(data.get("time") or ("night" if bg == "night" else "day"))
+    time = str(data.get("time") or "day")
     time = time if time in TIMES else "day"
+    if bg == "night":          # 夜の街は time に関わらず夜
+        time = "night"
     weather = str(data.get("weather", "sun")); weather = weather if weather in WEATHERS else "sun"
     cam = str(data.get("camera", "still")); cam = cam if cam in CAMERAS else "still"
     start = bool(anim) and int(prev_step) <= 0
@@ -972,14 +977,14 @@ def preview(out_dir: Path):
     jobs.append(("poses", "poses", pose_html, None))
     # 4) 小道具（長尺 5 枚・ショート 3 枚）
     P1 = [{"kind": "headline", "text": "買値50万円の家"}, {"kind": "price", "text": "50万円", "at": "center"},
-          {"kind": "sign", "text": "売地", "at": "left"}, {"kind": "coins", "count": 14, "at": "right"},
+          {"kind": "sign", "text": "売地", "x": 36}, {"kind": "coins", "count": 14, "x": 64},
           {"kind": "bubble", "text": "安っ！", "who": "ぽん太"}, {"kind": "exclaim", "who": "コツさん"}]
     add("props_1", "long", _sample_scene("blank", props=P1, sid="props1"))
-    P2 = [{"kind": "calendar", "text": "4か月", "at": "left"}, {"kind": "stamp", "text": "空室", "at": "center"},
-          {"kind": "arrow", "text": "家賃7万円", "dir": "up", "at": "right"}, {"kind": "sweat", "who": "ぽん太"}, {"kind": "question", "who": "コツさん"}]
+    P2 = [{"kind": "calendar", "text": "4か月", "x": 36}, {"kind": "stamp", "text": "空室", "at": "center"},
+          {"kind": "arrow", "text": "家賃7万円", "dir": "up", "x": 64}, {"kind": "sweat", "who": "ぽん太"}, {"kind": "question", "who": "コツさん"}]
     add("props_2", "long", _sample_scene("blank", props=P2, sid="props2",
                                           chars=[{"who": "ぽん太", "at": "left", "act": "think"}, {"who": "コツさん", "at": "right", "act": "point"}]))
-    P3 = [{"kind": "money", "text": "150万円", "at": "left"}, {"kind": "cross", "at": "center"}, {"kind": "check", "at": "right"},
+    P3 = [{"kind": "money", "text": "150万円", "x": 37}, {"kind": "cross", "at": "center"}, {"kind": "check", "x": 63},
           {"kind": "heart", "who": "ぽん太"}, {"kind": "zzz", "who": "コツさん"}]
     add("props_3", "long", _sample_scene("blank", props=P3, sid="props3",
                                           chars=[{"who": "ぽん太", "at": "left", "act": "cheer"}, {"who": "コツさん", "at": "right", "act": "shock"}]))
@@ -991,12 +996,15 @@ def preview(out_dir: Path):
           {"kind": "arrow", "text": "次へ", "dir": "right", "at": "right"}]
     add("props_5", "long", _sample_scene("bank", props=P5, sid="props5",
                                           chars=[{"who": "ぽん太", "at": "left", "act": "sit", "face": "doubt"}]))
-    add("short_1", "short", _sample_scene("house_old", props=P1[:4] + [{"kind": "bubble", "text": "ボロい…", "who": "ぽん太"}], sid="s1"))
+    add("short_1", "short", _sample_scene("house_old", props=[P1[0], P1[1], {"kind": "sign", "text": "再建築不可", "x": 50, "step": 1}, {"kind": "bubble", "text": "ボロい…", "who": "ぽん太"}], sid="s1"))
     add("short_2", "short", _sample_scene("street", "evening", props=[{"kind": "headline", "text": "物件を探して歩く"}, {"kind": "price", "text": "1,000万円／年", "at": "center"}],
                                             sid="s2", chars=[{"who": "ぽん太", "at": "center", "act": "walk"}]))
     add("short_3", "short", _sample_scene("desk", "night", props=[{"kind": "calendar", "text": "4か月", "at": "right"}, {"kind": "zzz", "who": "ぽん太"},
                                                                  {"kind": "counter", "value": 7, "unit": "万円", "label": "月の家賃", "at": "left"}],
                                             sid="s3", chars=[{"who": "ぽん太", "at": "center", "act": "sit", "face": "calm"}]))
+    add("bankbook_s4", "long", _sample_scene("bankbook", chars=[{"who": "コツさん", "at": "right", "act": "point"}],
+                                               props=[{"kind": "counter", "value": 7, "unit": "万円", "label": "月の家賃", "at": "left"}], sid="bb4"),
+        step=4, prev=2, t=350)
     # 5) カメラ 6 × 4 コマ（walk / 出現アニメ入り）
     for cam in CAMERAS:
         sc = _sample_scene("street", camera=cam, sid=f"cam_{cam}",
@@ -1004,6 +1012,11 @@ def preview(out_dir: Path):
                            props=[{"kind": "headline", "text": f"camera: {cam}"}, {"kind": "price", "text": "50万円", "at": "center", "step": 1}])
         for t in (0, 300, 700, 1300):
             add(f"cam_{cam}_{t:04d}", "long", sc, t=t)
+    # anim=False の静止画と、anim=True の最終コマ（t=1e7）が同じ絵であること
+    sc = _sample_scene("street", camera="in", sid="cam_in",
+                       chars=[{"who": "ぽん太", "at": "left", "act": "walk"}, {"who": "コツさん", "at": "right", "act": "cheer"}],
+                       props=[{"kind": "headline", "text": "camera: in"}, {"kind": "price", "text": "50万円", "at": "center", "step": 1}])
+    add("end_anim", "long", sc, t=None); add("end_static", "long", sc, anim=False, t=None)
     # 6) 口パク 3 変種（差分の確認用）
     vs = _sample_scene("office", props=[{"kind": "headline", "text": "口パクの確認"}, {"kind": "bubble", "text": "えっ！？", "who": "ぽん太"}], sid="var",
                        chars=[{"who": "ぽん太", "at": "left", "act": "point"}, {"who": "コツさん", "at": "right", "act": "stand"}])
@@ -1048,11 +1061,26 @@ def preview(out_dir: Path):
     sheet("bg_2", [(f"{bg}/{tm}", f"bg_{bg}_{tm}") for bg in BGS[7:] for tm in TIMES], 3, 620)
     sheet("weather", [(f"{bg}/{wt}", f"wt_{bg}_{wt}") for bg in BGS for wt in ("cloud", "rain")], 2, 760)
     sheet("poses", [("poses", "poses")], 1, 1900)
-    sheet("props", [(f"props_{i}", f"props_{i}") for i in range(1, 6)], 2, 940)
+    sheet("props", [(f"props_{i}", f"props_{i}") for i in range(1, 6)] + [("bankbook step 2→4 (t=350ms)", "bankbook_s4")], 2, 940)
     sheet("short", [(f"short_{i}", f"short_{i}") for i in range(1, 4)], 3, 600)
     sheet("camera", [(f"{cam} t={t}ms", f"cam_{cam}_{t:04d}") for cam in CAMERAS for t in (0, 300, 700, 1300)], 4, 470)
     sheet("variants", [(v, f"var_{v}") for v in ("closed", "open", "blink")], 3, 620)
     check_variants(out / "png", "var")
+    check_static(out / "png")
+
+def check_static(png_dir: Path):
+    """anim=False の静止画と anim=True の最終コマ（t=1e7）が同じ絵か。
+    camera: in の最終状態は scale(1.1) で、Chrome は animated transform をコンポジタで拡大するため縁の画素に小さなラスタ差が出る。
+    位置・内容が同じなら「強い差分（>24）」は面積の 2% 未満に収まる。"""
+    from PIL import Image, ImageChops
+    a = Image.open(Path(png_dir) / "end_anim.png").convert("RGB"); b = Image.open(Path(png_dir) / "end_static.png").convert("RGB")
+    d = ImageChops.difference(a, b).convert("L")
+    hist = d.histogram(); total = a.width * a.height
+    strong = sum(hist[25:]); mx = max(i for i, n in enumerate(hist) if n) if any(hist) else 0
+    ok = strong < total * .02
+    print(f"  anim=False の静止画 と anim=True の最終コマ: 強い差分 {strong} px ({strong / total * 100:.2f}%), 最大 {mx} → "
+          f"{'OK（ラスタ差のみ）' if ok else 'NG（内容が違う）'}")
+    return ok
 
 def check_variants(png_dir: Path, prefix: str):
     """closed / open / blink の差分が顔の位置だけにあることを確かめる"""
@@ -1089,6 +1117,6 @@ if __name__ == "__main__":
     if len(sys.argv) >= 3 and sys.argv[1] == "preview":
         preview(Path(sys.argv[2]))
     elif len(sys.argv) >= 3 and sys.argv[1] == "check":
-        check_variants(Path(sys.argv[2]), "var")
+        check_variants(Path(sys.argv[2]), "var"); check_static(Path(sys.argv[2]))
     else:
         print(__doc__)

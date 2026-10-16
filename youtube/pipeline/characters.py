@@ -109,7 +109,7 @@ def kotsu(expr="normal", mouth_open=False, blink=False, act="stand", facing="rig
         hands = _ell(62, 258, 26, 18) + _ell(196, 270, 22, 16, -35)
         over = _dots(196, 26)
     elif act == "cheer":
-        hands = _ell(44, 184, 18, 28, 28) + _ell(256, 184, 18, 28, -28)
+        hands = _ell(34, 168, 20, 32, 30) + _ell(266, 168, 20, 32, -30)
         feet = _ell(108, 291, 20, 9) + _ell(192, 291, 20, 9)
     elif act == "sit":
         hands = _ell(98, 284, 26, 15) + _ell(202, 284, 26, 15)
