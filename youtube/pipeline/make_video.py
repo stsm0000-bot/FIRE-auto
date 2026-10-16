@@ -21,6 +21,7 @@ import yaml
 import numpy as np
 from PIL import Image, ImageDraw
 import audio_synth
+import characters
 
 HERE = Path(__file__).resolve().parent
 TEMPLATE = HERE / "templates" / "slide.html"
@@ -87,6 +88,7 @@ class Line:
     st: str | None = None          # VOICEVOX のスタイル名（喜び・熱血 など）
     speed: float | None = None
     intonation: float | None = None
+    face: str | None = None        # キャラの表情（normal/happy/surprised/doubt/calm/fire）
 
 @dataclass
 class Scene:
@@ -101,9 +103,11 @@ def load_script(path: Path) -> dict:
     doc = yaml.safe_load(path.read_text(encoding="utf-8"))
     doc.setdefault("kind", "long")
     doc.setdefault("speakers", {
-        "聞": {"speaker": "ずんだもん", "style": "ノーマル", "name": "聞き手", "color": "#2F80ED"},
-        "答": {"speaker": "青山龍星", "style": "ノーマル", "name": "大家", "color": "#FF7A1A"},
+        "聞": {"speaker": "ずんだもん", "style": "ノーマル", "name": "ぽん太", "color": "#2F80ED", "char": "ぽん太"},
+        "答": {"speaker": "青山龍星", "style": "ノーマル", "name": "コツさん", "color": "#FF7A1A", "char": "コツさん"},
     })
+    for key, sp in doc["speakers"].items():
+        sp.setdefault("char", "コツさん" if key == "答" else "ぽん太")
     doc.setdefault("voice", {})
     doc["voice"] = {"speed": 1.08, "intonation": 1.25, "pitch": 0.0} | doc["voice"]
     scenes: list[Scene] = []
@@ -127,7 +131,7 @@ def load_script(path: Path) -> dict:
             cur = min(int(ln.get("step", cur)), steps)
             lines.append(Line(sp=ln["sp"], text=str(ln["text"]).strip(), step=cur,
                               mark=ln.get("mark"), pause=float(ln.get("pause", PAUSE_LINE)), prev_step=prev,
-                              st=ln.get("st"), speed=ln.get("speed"), intonation=ln.get("intonation")))
+                              st=ln.get("st"), speed=ln.get("speed"), intonation=ln.get("intonation"), face=ln.get("face")))
             prev = cur
         scenes.append(Scene(id=str(s["id"]), layout=layout, data=s, lines=lines, steps=steps,
                             chapter_no=chapter_no if layout == "chapter" else None))
@@ -172,6 +176,14 @@ def render_body(doc: dict, sc: Scene, step: int, mark: int | None, anim: bool, p
         h.append(f'<div class="title"><div class="big{ent(True)}">{esc(d.get("heading",""))}</div>')
         if d.get("sub"):
             h.append(f'<div class="sub{ent(True)}" style="--i:2">{esc(d["sub"])}</div>')
+        if d.get("cast"):
+            h.append('<div class="cast">')
+            for k, key in enumerate(("聞", "答")):
+                sp = doc["speakers"].get(key, {}); ch = characters.CHARACTERS.get(sp.get("char", ""))
+                if not ch: continue
+                h.append(f'<div class="castc{ent(True, "pop")}" style="--i:{3+k*2}">{characters.svg_document(ch["svg"]("happy"), 260)}'
+                         f'<div class="cname" style="background:{sp.get("color","#888")}">{esc(sp.get("name",""))}</div><div class="cdesc">{esc(ch["desc"])}</div></div>')
+            h.append('</div>')
         h.append('</div>')
     elif L in ("list", "flow"):
         items = d.get("items", [])
@@ -346,44 +358,37 @@ def render_thumbnail(chrome: str, doc: dict, out_dir: Path) -> Path | None:
     html = (tpl.replace("{{W}}", str(size[0])).replace("{{H}}", str(size[1]))
             .replace("{{FONT}}", doc.get("font", default_font()))
             .replace("{{BIG}}", esc(th.get("big", ""))).replace("{{SUB}}", esc(th.get("sub", "")))
-            .replace("{{TAG}}", esc(th.get("tag", "小規模な大家"))))
+            .replace("{{TAG}}", esc(th.get("tag", "小規模な大家")))
+            .replace("{{CHAR}}", characters.svg_document(characters.kotsu("happy"), 300)))
     return render_png(chrome, html, out_dir / "thumb.png", size)
 
-# ---------------------------------------------------------------- 話者アイコン
-AVATAR_SVG = {
-    "聞": '''
-      <circle cx="100" cy="104" r="80" fill="{c}" filter="url(#sh)"/>
-      <circle cx="100" cy="104" r="80" fill="none" stroke="#fff" stroke-width="{ring}"/>
-      <circle cx="72" cy="96" r="12" fill="#fff"/><circle cx="128" cy="96" r="12" fill="#fff"/>
-      <circle cx="75" cy="98" r="6" fill="#1F2A44"/><circle cx="131" cy="98" r="6" fill="#1F2A44"/>
-      <path d="M72 134 Q100 158 128 134" stroke="#fff" stroke-width="9" fill="none" stroke-linecap="round"/>
-      <text x="150" y="52" font-size="54" font-weight="900" fill="#F2B705" font-family="sans-serif">?</text>''',
-    "答": '''
-      <circle cx="100" cy="112" r="76" fill="{c}" filter="url(#sh)"/>
-      <circle cx="100" cy="112" r="76" fill="none" stroke="#fff" stroke-width="{ring}"/>
-      <path d="M100 14 L170 70 H30 Z" fill="#1F2A44"/><rect x="38" y="66" width="124" height="14" rx="6" fill="#1F2A44"/>
-      <circle cx="74" cy="110" r="11" fill="#fff"/><circle cx="126" cy="110" r="11" fill="#fff"/>
-      <circle cx="77" cy="112" r="5.5" fill="#1F2A44"/><circle cx="129" cy="112" r="5.5" fill="#1F2A44"/>
-      <path d="M70 142 Q100 168 130 142" stroke="#fff" stroke-width="9" fill="none" stroke-linecap="round"/>''',
-}
-def render_avatars(chrome: str, doc: dict, work: Path, px: int) -> dict[str, dict[str, Path]]:
-    tpl = (HERE / "templates" / "avatars.html").read_text(encoding="utf-8")
+# ---------------------------------------------------------------- 話者キャラクター
+def render_characters(chrome: str, doc: dict, work: Path, px: int) -> dict[str, dict[str, Path]]:
+    """話者ごとに キャラ × 表情 × 口 の PNG を描く。戻り値 {話者: {"idle":…, "blink":…, "happy_open":…}}"""
     out: dict[str, dict[str, Path]] = {}
     for key, sp in doc["speakers"].items():
-        svg_t = AVATAR_SVG.get(key, AVATAR_SVG["聞"])
+        ch = characters.CHARACTERS.get(sp.get("char", ""), None)
+        if ch is None:
+            continue
+        variants = {"idle": ("normal", False, False, True), "blink": ("normal", False, True, True)}
+        for e in characters.EXPRS:
+            variants[f"{e}_closed"] = (e, False, False, False)
+            variants[f"{e}_open"] = (e, True, False, False)
         out[key] = {}
-        for state, ring in (("idle", 0), ("on", 10)):
-            html = tpl.replace("{{W}}", "200").replace("{{H}}", "200").replace("{{SVG}}", svg_t.format(c=sp.get("color", "#888"), ring=ring))
-            png = work / f"av_{key}_{state}.png"
+        for vname, (expr, mouth, blink, dim) in variants.items():
+            png = work / f"ch_{key}_{vname}.png"
             if not png.exists():
+                svg = characters.svg_document(ch["svg"](expr, mouth, blink), 300)
+                html = ('<!doctype html><html><head><meta charset="utf-8"><style>*{margin:0;padding:0}html,body{width:300px;height:300px;background:transparent;overflow:hidden}</style></head>'
+                        f'<body>{svg}</body></html>')
                 hp = png.with_suffix(".html"); hp.write_text(html, encoding="utf-8")
                 run([chrome, "--headless=new", "--no-sandbox", "--disable-gpu", "--hide-scrollbars", "--default-background-color=00000000",
-                     "--window-size=200,420", f"--screenshot={png}", hp.resolve().as_uri()])
-                im = Image.open(png).convert("RGBA").crop((0, 0, 200, 200))   # headless の窓はツールバーぶん縦が削れるので余裕をとって切る
-                if state == "idle":
-                    a = im.split()[3].point(lambda v: int(v * 0.55)); im.putalpha(a)
+                     "--window-size=300,520", f"--screenshot={png}", hp.resolve().as_uri()])
+                im = Image.open(png).convert("RGBA").crop((0, 0, 300, 300))
+                if dim:
+                    a = im.split()[3].point(lambda v: int(v * 0.6)); im.putalpha(a)
                 im.resize((px, px), Image.LANCZOS).save(png)
-            out[key][state] = png
+            out[key][vname] = png
     return out
 
 # ---------------------------------------------------------------- 音声
@@ -487,9 +492,9 @@ def write_ass(doc: dict, events: list[tuple[float, float, str, str]], out: Path)
     w, h = SIZES[doc["kind"]]
     font = doc.get("font", default_font())
     short = doc["kind"] == "short"
-    fs = 66 if short else 58
-    mv = 560 if short else 46   # 下端からの距離（ショートは中央寄り）
-    ml = 70 if short else 200
+    fs = 66 if short else 54
+    mv = 560 if short else 40   # 下端からの距離（ショートは中央寄り）
+    ml = 70 if short else 270
     styles = []
     for key, sp in doc["speakers"].items():
         styles.append(f"Style: {key},{font},{fs},&H00FFFFFF,&H00FFFFFF,&H00141414,&H38141414,-1,0,0,0,100,100,0,0,4,0,18,2,{ml},{ml},{mv},1")
@@ -502,10 +507,10 @@ def write_ass(doc: dict, events: list[tuple[float, float, str, str]], out: Path)
     ]
     for st, en, sp, text in events:
         col = ass_color(doc["speakers"][sp]["color"])
-        text = wrap_jp(text.replace("★", "").strip(), 13 if short else 25)
+        text = wrap_jp(text.replace("★", "").strip(), 13 if short else 24)
         text = re.sub(r"([0-9０-９,，.]+(?:万円|億円|円|戸|年目|年|か月|ヶ月|日|回|％|パーセント|人|棟|分|倍)?)",
                       r"{\\c&H05B7F2&}\1{\\c&H00FFFFFF&}", text)
-        lines.append(f"Dialogue: 0,{ass_time(st)},{ass_time(en)},{sp},,0,0,0,,{{\\c{col}}}▌{{\\c&H00FFFFFF&}}{text}")
+        lines.append(f"Dialogue: 0,{ass_time(st)},{ass_time(en)},{sp},,0,0,0,,{{\\fscx90\\fscy90\\t(0,110,\\fscx100\\fscy100)}}{{\\c{col}}}▌{{\\c&H00FFFFFF&}}{text}")
     out.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 # ---------------------------------------------------------------- 結合
@@ -529,7 +534,8 @@ def build(script: Path, out_dir: Path, tts_mode: str, bgm: Path | None, bgm_db: 
     # ---- 第 1 段: 音声を作りながら、画の「状態」と表示秒を並べる
     plan: list[dict] = []        # {html, key, nframes, dur, scene, layout}
     se_events: list[tuple[float, str]] = []
-    speak: dict[str, list[tuple[float, float]]] = {k: [] for k in doc["speakers"]}
+    speak: dict[str, dict[str, list[tuple[float, float]]]] = {k: {} for k in doc["speakers"]}
+    holds: list[tuple[str, float]] = []   # (状態キー, 同じ画が続いた秒数) QA 用
     audio_parts: list[tuple[Path, float]] = []
     sub_events: list[tuple[float, float, str, str]] = []
     chapters: list[tuple[float, str]] = []
@@ -557,21 +563,34 @@ def build(script: Path, out_dir: Path, tts_mode: str, bgm: Path | None, bgm_db: 
             pause = (PAUSE_CHAPTER if sc.layout == "chapter" else PAUSE_SCENE) if last else ln.pause
             if ln.text:
                 sub_events.append((t, t + dur + min(pause, 0.3), ln.sp, ln.text))
-                speak[ln.sp].append((t, t + dur))
+                expr = ln.face or characters.guess_expr(ln.st, ln.text)
+                speak[ln.sp].setdefault(expr, []).append((t, t + dur))
+            if changed:
+                holds.append((f"{sc.id}/{ln.step}/{ln.mark}", dur + pause))
+            elif holds:
+                holds[-1] = (holds[-1][0], holds[-1][1] + dur + pause)
             if changed:
                 L = sc.layout
-                if L == "chapter": se_events.append((t, "ding"))
+                newn = max(0, ln.step - ln.prev_step)
+                if L == "chapter": se_events += [(t - 0.3, "riser"), (t + 0.05, "reveal")]
                 elif L == "title": se_events.append((t + 0.05, "whoosh"))
                 elif L == "ending": se_events.append((t + 0.1, "sparkle"))
                 elif L == "counter":
                     cd = float(sc.data.get("dur", 2.0))
+                    se_events.append((t - 0.2, "riser"))
                     se_events += [(t + 0.25 + k * 0.28, "coin") for k in range(int(cd / 0.28))]
-                    if sc.data.get("burst"): se_events.append((t + cd + 0.1, "sparkle"))
+                    se_events.append((t + cd + 0.1, "reveal" if sc.data.get("burst") else "sparkle"))
                 elif L == "portfolio":
-                    newn = max(0, ln.step - ln.prev_step)
                     se_events += [(t + 0.1 + k * 0.12, "pop") for k in range(min(newn, 12))]
                     se_events.append((t + 0.3 + min(newn, 12) * 0.12, "coin"))
                     if ln.step >= sc.steps: se_events.append((t + 0.6 + min(newn, 12) * 0.12, "sparkle"))
+                elif L in ("list", "flow", "bar", "timeline"):
+                    items = sc.data.get("items") or sc.data.get("rows") or []
+                    se_events.append((t + 0.05, "pop"))
+                    se_events += [(t + 0.05 + (k + 1) * 0.24, "tick") for k in range(max(0, newn - 1))]
+                    if L == "flow" and ln.step >= 1 and ln.step <= len(items) and isinstance(items[ln.step - 1], dict) and items[ln.step - 1].get("sum"):
+                        se_events.append((t + 0.15, "reveal"))
+                    if ln.mark: se_events.append((t + 0.3, "coin"))
                 else:
                     se_events.append((t + 0.05, "pop"))
             nframes = int(round(ANIM_SEC.get(sc.layout, 0.8) * FPS)) if (changed and motion) else 1
@@ -612,12 +631,20 @@ def build(script: Path, out_dir: Path, tts_mode: str, bgm: Path | None, bgm_db: 
     write_ass(doc, sub_events, work / "subs.ass")
     se_track = np.zeros(int((total + 1) * SR))
     if doc.get("sfx", True):
-        clips = {n: audio_synth.sfx(n) for n in ("pop", "coin", "sparkle", "whoosh", "ding")}
+        clips = {n: audio_synth.sfx(n) for n in ("pop", "coin", "sparkle", "whoosh", "ding", "reveal", "riser", "tick")}
         for at, name in se_events:
-            c = clips[name]; st = int(at * SR)
+            c = clips[name]; st = int(max(0.0, at) * SR)
             if st + len(c) < len(se_track): se_track[st:st + len(c)] += c
     audio_synth.write_wav(work / "se.wav", se_track * 0.6)
-    avatars = render_avatars(chrome, doc, work, 170 if kind == "long" else 150) if doc.get("avatars", True) else None
+    avatars = render_characters(chrome, doc, work, 230 if kind == "long" else 200) if doc.get("avatars", True) else None
+    # 品質部の指摘: 同じ画が長く続く場面、写真の無い photo を警告
+    warnings = []
+    for key, sec in holds:
+        if sec > 8.0: warnings.append(f"同じ画が {sec:.1f} 秒続く: {key}")
+    for sc in doc["_scenes"]:
+        if sc.layout == "photo" and not ((sc.data.get("before") or {}).get("image") and (sc.data.get("after") or {}).get("image")):
+            warnings.append(f"photo に写真が入っていない（枠だけ）: {sc.id}")
+    for wmsg in warnings: print("      警告:", wmsg)
 
     print("[4/5] 画の並び（場面の切り替えはクロスフェード）")
     frames_txt: list[tuple[Path, float]] = []
@@ -671,24 +698,36 @@ def build(script: Path, out_dir: Path, tts_mode: str, bgm: Path | None, bgm_db: 
           f"drawbox=x=0:y=ih-8:w='iw*t/{total:.2f}':h=8:color=0x{accent}@0.9:t=fill,"
           f"subtitles=subs.ass")
     if avatars:
-        px = 170 if kind == "long" else 150
+        px = 230 if kind == "long" else 200
         pos = {}
-        keys = list(doc["speakers"].keys())
+        keys = [k for k in doc["speakers"].keys() if k in avatars]
         for i, k in enumerate(keys[:2]):
             if kind == "long":
-                pos[k] = (28 if i == 0 else w - px - 28, h - px - 22)
+                pos[k] = (20 if i == 0 else w - px - 20, h - px - 10)
             else:
-                pos[k] = (60 if i == 0 else w - px - 60, h - 560 + 30)
+                pos[k] = (50 if i == 0 else w - px - 50, h - 560 + 20)
         chain = "[v0]"
         parts = [vf + "[v0]"]
         n = 0
-        for k in keys[:2]:
+        def ov(img: Path, x, y, enable: str | None = None, bob=False):
+            nonlocal chain, n
+            yexpr = f"'{y}+6*sin(2*PI*2.4*t)'" if bob else str(y)
+            en = f":enable='{enable}'" if enable else ""
+            parts.append(f"movie={img.name}[m{n}];{chain}[m{n}]overlay=x={x}:y={yexpr}{en}[v{n+1}]"); chain = f"[v{n+1}]"; n += 1
+        for ki, k in enumerate(keys[:2]):
             x, y = pos[k]
-            parts.append(f"movie={avatars[k]['idle'].name}[i{n}];{chain}[i{n}]overlay={x}:{y}[v{n+1}]"); chain = f"[v{n+1}]"; n += 1
-            ivs = speak.get(k, [])
-            if ivs:
-                en = "+".join(f"between(t,{a:.2f},{b:.2f})" for a, b in ivs)
-                parts.append(f"movie={avatars[k]['on'].name}[o{n}];{chain}[o{n}]overlay=x={x}:y='{y}+7*sin(2*PI*2.6*t)':enable='{en}'[v{n+1}]"); chain = f"[v{n+1}]"; n += 1
+            ov(avatars[k]["idle"], x, y)
+            all_iv = [iv for ivs in speak.get(k, {}).values() for iv in ivs]
+            if all_iv:
+                en_all = "+".join(f"between(t,{a:.2f},{b:.2f})" for a, b in sorted(all_iv))
+                # まばたき（話していないとき、3.7 秒ごとに 0.13 秒）
+                ov(avatars[k]["blink"], x, y, enable=f"not({en_all})*lt(mod(t+{ki*1.3:.1f},3.7),0.13)")
+                for expr, ivs in speak[k].items():
+                    en = "+".join(f"between(t,{a:.2f},{b:.2f})" for a, b in ivs)
+                    ov(avatars[k][f"{expr}_closed"], x, y, enable=f"({en})*gte(mod(t,0.22),0.11)", bob=True)
+                    ov(avatars[k][f"{expr}_open"], x, y, enable=f"({en})*lt(mod(t,0.22),0.11)", bob=True)
+            else:
+                ov(avatars[k]["blink"], x, y, enable=f"lt(mod(t+{ki*1.3:.1f},3.7),0.13)")
         parts.append(f"{chain}format=yuv420p[vout]")
         vfilter = ";".join(parts); vmap = "[vout]"
     else:
@@ -724,7 +763,7 @@ def build(script: Path, out_dir: Path, tts_mode: str, bgm: Path | None, bgm_db: 
     thumb = render_thumbnail(chrome, doc, out_dir)
     write_publish(doc, chapters, total, out_dir, thumb)
     print(f"完成: {out_mp4}")
-    qa(out_mp4, kind, stub=(tts_mode == "stub"), out_json=out_dir / "qa.json")
+    qa(out_mp4, kind, stub=(tts_mode == "stub"), out_json=out_dir / "qa.json", warnings=warnings)
 
 # ---------------------------------------------------------------- 公開用メモ
 def fmt_ts(t: float) -> str:
@@ -756,7 +795,7 @@ def write_publish(doc: dict, chapters: list[tuple[float, str]], total: float, ou
     (out_dir / "publish.md").write_text("\n".join(md) + "\n", encoding="utf-8")
 
 # ---------------------------------------------------------------- 検査
-def qa(mp4: Path, kind: str | None = None, stub=False, out_json: Path | None = None) -> bool:
+def qa(mp4: Path, kind: str | None = None, stub=False, out_json: Path | None = None, warnings: list[str] | None = None) -> bool:
     pr = run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height,r_frame_rate:format=duration",
               "-of", "json", str(mp4)])
     info = json.loads(pr.stdout)
@@ -775,13 +814,18 @@ def qa(mp4: Path, kind: str | None = None, stub=False, out_json: Path | None = N
         "ラウドネス": ((lufs is not None and -15.5 <= lufs <= -12.5) or stub, f"{lufs} LUFS（目標 -14）" + ("  ※スタブ音声のため判定除外" if stub else "")),
         "無音の最大": ((max_gap <= 1.2) or stub, f"{max_gap:.2f} 秒（1.2 秒以下）" + ("  ※スタブ音声のため判定除外" if stub else "")),
     }
+    if warnings is not None:
+        long_holds = [x for x in warnings if "秒続く" in x]
+        checks["画の変化"] = (len(long_holds) == 0, f"同じ画が 8 秒超: {len(long_holds)} か所" + ("（台本の step/mark を増やす）" if long_holds else ""))
     ok = all(v[0] for v in checks.values())
     print("---- QA", mp4.name)
     for k, (p, msg) in checks.items():
         print(f"  {'OK ' if p else 'NG '} {k}: {msg}")
+    for wmsg in (warnings or []):
+        if "秒続く" not in wmsg: print("  注意:", wmsg)
     print("  結果:", "合格" if ok else "不合格")
     if out_json:
-        out_json.write_text(json.dumps({k: {"ok": v[0], "detail": v[1]} for k, v in checks.items()} | {"pass": ok}, ensure_ascii=False, indent=2), encoding="utf-8")
+        out_json.write_text(json.dumps({k: {"ok": v[0], "detail": v[1]} for k, v in checks.items()} | {"pass": ok, "warnings": warnings or []}, ensure_ascii=False, indent=2), encoding="utf-8")
     return ok
 
 # ---------------------------------------------------------------- 入口
