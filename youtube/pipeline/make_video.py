@@ -337,9 +337,14 @@ def render_html(doc: dict, sc: Scene, step: int, mark: int | None, chapter_idx: 
             .replace("{{DISCLAIMER}}", esc(doc.get("disclaimer", "登場人物・数字・例文は説明のための架空の設定です")))
             .replace("{{BODY}}", render_body(doc, sc, step, mark, anim, prev_step)))
 
-def render_png(chrome: str, html: str, out_png: Path, size: tuple[int, int]) -> Path:
-    key = hashlib.md5(html.encode("utf-8")).hexdigest()[:12]
-    out = out_png.with_name(f"{out_png.stem}_{key}.png")
+def render_png(chrome: str, html: str, out_png: Path, size: tuple[int, int], exact: bool = False) -> Path:
+    """HTML を 1 枚の PNG に。exact=False なら out_png の名前に HTML のハッシュを付けて保存（サムネ・アバター向け）、
+    exact=True なら out_png にそのまま保存（呼び出し側が既にハッシュ付きの名前を決めている場合）。"""
+    if exact:
+        out = out_png
+    else:
+        key = hashlib.md5(html.encode("utf-8")).hexdigest()[:12]
+        out = out_png.with_name(f"{out_png.stem}_{key}.png")
     if out.exists():
         return out
     html_path = out.with_suffix(".html")
@@ -617,8 +622,8 @@ def build(script: Path, out_dir: Path, tts_mode: str, bgm: Path | None, bgm_db: 
             if not final.exists():
                 if motion:
                     jobs.append({"html": str(html_path), "out": str(prefix), "frames": 1})
-                else:
-                    render_png(chrome, pl["html"], prefix, size)
+                else:   # 静止画経路: 第 4 段が開く {scene}_{hash}.png にそのまま保存する
+                    render_png(chrome, pl["html"], final, size, exact=True)
         else:
             lastf = prefix.parent / f"{prefix.name}_{pl['nframes']-1:04d}.png"
             if not lastf.exists():
