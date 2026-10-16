@@ -575,6 +575,13 @@ def tts_voicevox(text: str, speaker_id: int, out: Path, speed: float = 1.0, into
     with urllib.request.urlopen(s, timeout=120) as r:
         out.write_bytes(r.read())
 
+def voice_key(doc: dict, ln: Line, mode: str) -> str:
+    """音声キャッシュの鍵（台詞・話者・スタイル・話速・抑揚が同じなら同じ）"""
+    sp = doc["speakers"][ln.sp]; v = doc["voice"]
+    sig = "|".join(str(x) for x in (mode, ln.text, sp.get("speaker"), sp.get("voicevox_id"), ln.st or sp.get("style"),
+                                      ln.speed or v["speed"], ln.intonation or v["intonation"], v["pitch"]))
+    return hashlib.md5(sig.encode("utf-8")).hexdigest()[:8]
+
 def tts_line(mode: str, doc: dict, ln: Line, out: Path):
     if out.exists():
         return
@@ -717,7 +724,7 @@ def build(script: Path, out_dir: Path, tts_mode: str, bgm: Path | None, bgm_db: 
                 variants = None; fkey = None; redraw = changed
                 html = render_html(doc, sc, ln.step, ln.mark, chapter_idx, anim=changed, prev_step=ln.prev_step if changed else ln.step)
             if ln.text:
-                wav = work / "voice" / f"{sc.id}_{li:02d}.wav"
+                wav = work / "voice" / f"{sc.id}_{li:02d}_{voice_key(doc, ln, tts_mode)}.wav"   # 台詞や声が変わればファイル名も変わる
                 tts_line(tts_mode, doc, ln, wav)
                 dur = wav_duration(wav)
             else:
