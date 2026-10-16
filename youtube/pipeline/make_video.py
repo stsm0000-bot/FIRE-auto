@@ -130,7 +130,8 @@ def load_script(path: Path) -> dict:
 
 # ---------------------------------------------------------------- スライド描画
 def esc(s) -> str:
-    return (str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    # ★ は「公開前に本人が確認する数字」の目印。画面には出さない
+    return (str(s).replace("★", "").rstrip().replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
             .replace("\n", "<br>"))
 
 def house_svg(color="#1B1B1B") -> str:
@@ -406,7 +407,7 @@ def write_ass(doc: dict, events: list[tuple[float, float, str, str]], out: Path)
     ]
     for st, en, sp, text in events:
         col = ass_color(doc["speakers"][sp]["color"])
-        text = wrap_jp(text, 13 if short else 25)
+        text = wrap_jp(text.replace("★", "").strip(), 13 if short else 25)
         lines.append(f"Dialogue: 0,{ass_time(st)},{ass_time(en)},{sp},,0,0,0,,{{\\c{col}}}▌{{\\c&H00FFFFFF&}}{text}")
     out.write_text("\n".join(lines) + "\n", encoding="utf-8")
 

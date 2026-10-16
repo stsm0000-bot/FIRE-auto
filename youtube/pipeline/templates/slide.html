@@ -19,8 +19,8 @@ body::after{content:"";position:absolute;inset:0;pointer-events:none;background:
 .top{display:flex;align-items:center;justify-content:space-between;padding:40px var(--pad) 0;height:120px}
 .q{font-size:34px;font-weight:700;background:#fff;border:3px solid var(--ink);border-radius:999px;padding:12px 30px;max-width:78%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .chap{font-size:34px;font-weight:700;color:var(--mute);letter-spacing:.05em}
-.body{flex:1;display:flex;align-items:center;justify-content:center;padding:0 var(--pad);margin-bottom:var(--subband)}
-.foot{position:absolute;right:var(--pad);bottom:calc(var(--subband) - 44px);font-size:24px;color:var(--mute)}
+.body{flex:1;display:flex;align-items:center;justify-content:center;padding:0 var(--pad);margin-bottom:calc(var(--subband) + 30px)}
+.foot{position:absolute;right:var(--pad);bottom:calc(var(--subband) + 14px);font-size:24px;color:var(--mute)}
 html[data-kind="short"] .foot{bottom:90px;right:auto;left:0;width:100%;text-align:center}
 html[data-kind="short"] .q{max-width:92%;font-size:30px}
 .off{opacity:var(--off)}
@@ -71,7 +71,7 @@ html[data-kind="short"] .flow .arrow{transform:rotate(90deg)}
 html[data-kind="short"] .compare{flex-direction:column}
 .col{flex:1;background:var(--box);border:4px solid var(--line);border-radius:26px;padding:40px;box-shadow:0 8px 0 rgba(0,0,0,.12)}
 .col.bad{border-color:var(--accent)} .col.good{border-color:var(--green)}
-.ct{font-size:var(--fs-h);font-weight:900;text-align:center;margin-bottom:28px;padding-bottom:18px;border-bottom:4px solid var(--line)}
+.ct{font-size:50px;font-weight:900;text-align:center;margin-bottom:28px;padding-bottom:18px;border-bottom:4px solid var(--line);line-height:1.3}
 .col.bad .ct{color:var(--accent)} .col.good .ct{color:var(--green)}
 .ci{font-size:var(--fs-item);font-weight:700;padding:14px 0 14px 54px;position:relative;line-height:1.35}
 .ci::before{content:"";position:absolute;left:10px;top:34px;width:22px;height:22px;border-radius:50%;background:var(--ink)}
