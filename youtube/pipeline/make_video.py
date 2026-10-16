@@ -34,6 +34,7 @@ PAUSE_LINE = 0.30       # 台詞のあとの間
 PAUSE_SCENE = 0.60      # 場面が変わるときの間
 PAUSE_CHAPTER = 0.80    # 章扉のあとの間
 XFADE_FRAMES = 6        # 場面が変わるときのクロスフェードのコマ数（0.2秒）
+JUMP_ZOOMS = (1.0, 1.045, 1.0, 1.07, 1.0, 1.045)   # 画が変わらない台詞が続くとき、台詞ごとに寄る倍率（ジャンプカット風）
 ANIM_SEC = {            # 状態が変わったとき、何秒ぶんコマ撮りするか（レイアウト別）
     "chapter": 0.7, "title": 0.8, "list": 0.8, "flow": 0.9, "compare": 0.8, "bar": 1.3, "quote": 0.7,
     "ending": 0.9, "counter": 2.3, "portfolio": 2.4, "timeline": 0.9, "photo": 0.9,
@@ -173,7 +174,10 @@ def render_body(doc: dict, sc: Scene, step: int, mark: int | None, anim: bool, p
     if L == "chapter":
         h.append(f'<div class="chapter{ent(True)}"><div class="num">{sc.chapter_no}</div><div class="ttl">{esc(d.get("heading",""))}</div></div>')
     elif L == "title":
-        h.append(f'<div class="title"><div class="big{ent(True)}">{esc(d.get("heading",""))}</div>')
+        hd = str(d.get("heading", ""))
+        longest = max((len(x) for x in hd.split("\n")), default=0)
+        size_cls = " long" if longest > 18 else ""
+        h.append(f'<div class="title"><div class="big{size_cls}{ent(True)}">{esc(hd)}</div>')
         if d.get("sub"):
             h.append(f'<div class="sub{ent(True)}" style="--i:2">{esc(d["sub"])}</div>')
         if d.get("cast"):
@@ -565,10 +569,9 @@ def build(script: Path, out_dir: Path, tts_mode: str, bgm: Path | None, bgm_db: 
                 sub_events.append((t, t + dur + min(pause, 0.3), ln.sp, ln.text))
                 expr = ln.face or characters.guess_expr(ln.st, ln.text)
                 speak[ln.sp].setdefault(expr, []).append((t, t + dur))
-            if changed:
-                holds.append((f"{sc.id}/{ln.step}/{ln.mark}", dur + pause))
-            elif holds:
-                holds[-1] = (holds[-1][0], holds[-1][1] + dur + pause)
+            same_run = 0 if changed else (plan[-1]["same_run"] + 1 if plan else 0)
+            # ジャンプカットのズームで台詞ごとに画が変わるので、1 台詞の長さだけを「同じ画」として数える
+            holds.append((f"{sc.id}/{ln.step}/{ln.mark}", dur + pause))
             if changed:
                 L = sc.layout
                 newn = max(0, ln.step - ln.prev_step)
@@ -594,7 +597,7 @@ def build(script: Path, out_dir: Path, tts_mode: str, bgm: Path | None, bgm_db: 
                 else:
                     se_events.append((t + 0.05, "pop"))
             nframes = int(round(ANIM_SEC.get(sc.layout, 0.8) * FPS)) if (changed and motion) else 1
-            plan.append({"html": html, "key": key, "nframes": nframes, "dur": dur + pause, "scene": sc.id, "layout": sc.layout})
+            plan.append({"html": html, "key": key, "nframes": nframes, "dur": dur + pause, "scene": sc.id, "layout": sc.layout, "same_run": same_run})
             audio_parts.append((wav, pause)); t += dur + pause
             last_key = key
     total = t
@@ -675,6 +678,15 @@ def build(script: Path, out_dir: Path, tts_mode: str, bgm: Path | None, bgm_db: 
                         Image.blend(a, b, k / (nxf + 1)).save(f)
                 frames_txt.append((f, 1 / FPS))
         remain = pl["dur"]
+        if pl["same_run"] > 0 and len(seq) == 1:
+            z = JUMP_ZOOMS[pl["same_run"] % len(JUMP_ZOOMS)]
+            if z != 1.0:
+                zf = work / "slides" / f"z_{hashlib.md5((str(seq[0])+str(z)).encode()).hexdigest()[:10]}.png"
+                if not zf.exists():
+                    im = Image.open(seq[0]).convert("RGB"); W, H = im.size
+                    cw, chh = int(W / z), int(H / z)
+                    im.crop(((W - cw) // 2, int((H - chh) * 0.42), (W - cw) // 2 + cw, int((H - chh) * 0.42) + chh)).resize((W, H), Image.LANCZOS).save(zf)
+                seq = [zf]
         if len(seq) > 1:
             use = seq[:max(1, min(len(seq), int(remain * FPS) - 1))]
             for f in use[:-1]:
