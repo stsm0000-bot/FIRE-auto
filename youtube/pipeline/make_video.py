@@ -1127,7 +1127,8 @@ def qa(mp4: Path, kind: str | None = None, stub=False, out_json: Path | None = N
     max_gap = max(gaps) if gaps else 0.0
     checks = {
         "解像度": ((w, h) == SIZES[kind], f"{w}x{h}（期待 {SIZES[kind][0]}x{SIZES[kind][1]}）"),
-        "尺": ((240 <= dur <= 600) if kind == "long" else (20 <= dur <= 59.5), f"{dur:.1f} 秒（長尺 4〜10 分 / ショート 20〜59 秒）"),
+        "尺": ((240 <= dur <= 660) if kind == "long" else (20 <= dur <= 59.5),
+              f"{dur:.1f} 秒（長尺 4〜11 分・ミッドロール広告は 8 分以上{'' if kind != 'long' or dur >= 480 else '＝まだ入らない'} / ショート 20〜59 秒）"),
         "ラウドネス": ((lufs is not None and -15.5 <= lufs <= -12.5) or stub, f"{lufs} LUFS（目標 -14）" + ("  ※スタブ音声のため判定除外" if stub else "")),
         "無音の最大": ((max_gap <= 1.2) or stub, f"{max_gap:.2f} 秒（1.2 秒以下）" + ("  ※スタブ音声のため判定除外" if stub else "")),
     }
