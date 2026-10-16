@@ -3,11 +3,16 @@
 audio_synth.py ― 効果音と BGM を numpy だけで合成する（素材の権利問題をゼロにするため）
   効果音: pop（要素が出る）, coin（数字が伸びる）, sparkle（合計・締め）, whoosh（章の切り替え）, ding（章扉）
           reveal（ジャーン）, riser（盛り上げ）, tick（小さなクリック）
+          物語用: step（足音）, door（ドア）, hammer（とんかち）, cash（チャリーン）, stamp（ハンコ）, boing（ずっこけ）,
+                  sad（しょぼん）, shock（びっくり）, jingle_open（冒頭ジングル 1.5 秒）, jingle_end（締めジングル 2 秒）
+  環境音: ambience(name, seconds, seed) ― street / night / rain / room / site。つなぎ目の目立たないループ素材、約 -30 LUFS。
   BGM:    明るいポップ調（イントロ 1 小節 → A 8 小節 → B 8 小節 → A …）。
           ピアノ／ウクレレ風プラック＋サインベース＋ローパスのパッド＋キック／スネア／ハット＋ペンタトニックの短いメロディ。
           軽いリバーブと tanh コンプ、ラウドネス約 -18 LUFS、ピーク -1 dBFS 以下に整える。
-外部 API（他ファイルから呼ばれる）: sfx(name) / bgm(seconds, bpm, seed) / write_wav(path, data)
+外部 API（他ファイルから呼ばれる）: sfx(name) / ambience(name, seconds, seed) / bgm(seconds, bpm, seed) / write_wav(path, data)
   いずれも float の numpy 配列（-1〜1、24 kHz モノラル）を扱う。
+検査: python audio_synth.py sheet out_dir  → 全効果音を 0.4 秒おきに並べた sfx_sheet.wav、各環境音 6 秒の amb_*.wav、ラウドネス表
+      python audio_synth.py out_dir        → 個別の sfx_*.wav / amb_*.wav / bgm_synth.wav
 """
 from __future__ import annotations
 import math, wave
@@ -112,6 +117,71 @@ def _lufs(x: np.ndarray) -> float:
     y = _fft_filter(x, kw)
     return -0.691 + 10 * math.log10(float(np.mean(y ** 2)) + 1e-12)
 
+# ---------------------------------------------------------------- 追加部品（物語用の効果音・環境音で使う）
+def _noise(n: int, seed: int) -> np.ndarray:
+    return np.random.default_rng(seed).standard_normal(n)
+
+def _bandpass(x: np.ndarray, lo: float, hi: float, order: float = 2) -> np.ndarray:
+    return _fft_filter(x, lambda f: ((f / lo) ** order / np.sqrt(1 + (f / lo) ** (2 * order))) / np.sqrt(1 + (f / hi) ** (2 * order)))
+
+def _put(out: np.ndarray, sig: np.ndarray, t0: float, gain: float = 1.0) -> None:
+    """out の t0 秒の位置に sig を足し込む（はみ出しは切る）"""
+    st = int(round(t0 * SR))
+    if st < 0 or st >= len(out): return
+    m = min(len(sig), len(out) - st)
+    out[st:st + m] += sig[:m] * gain
+
+def _put_wrap(out: np.ndarray, sig: np.ndarray, t0: float, gain: float = 1.0) -> None:
+    """ループ素材用: 末尾からはみ出た分は頭に回す"""
+    n = len(out)
+    if n == 0: return
+    st = int(round(t0 * SR)) % n
+    sig = sig[:n]
+    first = min(len(sig), n - st)
+    out[st:st + first] += sig[:first] * gain
+    if first < len(sig):
+        out[:len(sig) - first] += sig[first:] * gain
+
+def _norm(x: np.ndarray, lufs: float = -18.0, peak: float = 0.6, max_drive: float = 1.6) -> np.ndarray:
+    """ラウドネスを目標 LUFS に合わせる。ピークが上限を超えるときは bgm と同じ流儀で tanh の軽いリミッタ
+    （押し込みは最大 max_drive 倍まで）に通し、上限 peak を超えない＝クリップしないようにする。
+    打撃系（足音・とんかち）は山が鋭いので目標より数 dB 小さく落ち着く"""
+    x = x * 10 ** ((lufs - _lufs(x)) / 20)
+    p = float(np.max(np.abs(x))) if len(x) else 0.0
+    if p > peak:
+        drive = min(p / peak, max_drive)
+        x = peak * np.tanh(x * (drive / p))
+        x = x * 10 ** (min(0.0, lufs - _lufs(x)) / 20)
+    return x
+
+def _slow_lfo(n: int, rate_hz: float, seed: int, depth: float = 1.0) -> np.ndarray:
+    """ゆっくり揺れる制御信号（ノイズをローパス → 0〜1 に正規化 → (1-depth)〜1）"""
+    x = _lowpass(_noise(n, seed), rate_hz, 2)
+    x = (x - x.min()) / (x.max() - x.min() + 1e-9)
+    return 1 - depth + depth * x
+
+def _loop(x: np.ndarray, n: int, xf_sec: float = 1.0) -> np.ndarray:
+    """長さ n+xf 以上の x から、末尾 xf 秒を頭にクロスフェードして、つなぎ目の目立たない n サンプルのループ素材を作る"""
+    xf = min(int(xf_sec * SR), n // 2, max(len(x) - n, 0))
+    y = x[:n].copy()
+    if xf > 0:
+        w = np.linspace(0, 1, xf)
+        y[:xf] = y[:xf] * w + x[n:n + xf] * (1 - w)
+    return y
+
+def _bird(rng: np.random.Generator) -> np.ndarray:
+    """さえずり 1 回ぶん（2〜5 音の、ピッチが動く短いサイン波）"""
+    k = int(rng.integers(2, 6)); out = np.zeros(int((0.16 * k + 0.1) * SR))
+    base = rng.uniform(2400, 4200); pos = 0.0
+    for _ in range(k):
+        d = rng.uniform(0.04, 0.09); n = int(d * SR); t = np.arange(n) / SR
+        f0 = base * rng.uniform(0.9, 1.15); f1 = f0 * rng.uniform(0.75, 1.4)
+        shape = np.sin(np.pi * t / d) if rng.random() < 0.5 else t / d
+        f = f0 * (f1 / f0) ** shape
+        s = np.sin(_TWO_PI * np.cumsum(f) / SR) * np.sin(np.pi * t / d) ** 0.7
+        _put(out, s, pos); pos += d + rng.uniform(0.02, 0.07)
+    return out
+
 # ---------------------------------------------------------------- 楽器
 def _pluck(freq: float, sec: float = 0.5, bright: float = 1.0, seed: int = 0) -> np.ndarray:
     """ピアノ／ウクレレ風プラック: 倍音 4 本（高い倍音ほど早く減衰）＋ごく短い爪ノイズ"""
@@ -175,6 +245,10 @@ def _hat(open_: bool = False, seed: int = 13) -> np.ndarray:
     return _fade(noise * env / 2.2, 0.002, 0.01) * 0.6
 
 # ---------------------------------------------------------------- 効果音
+SFX_NAMES = ("pop", "coin", "sparkle", "whoosh", "ding", "reveal", "riser", "tick",
+             "step", "door", "hammer", "cash", "stamp", "boing", "sad", "shock", "jingle_open", "jingle_end")
+AMBIENCE_NAMES = ("street", "night", "rain", "room", "site")
+
 def sfx(name: str) -> np.ndarray:
     if name == "pop":
         # 気持ちいい「ポン」: 2 つの短い倍音、ごく短いピッチ下降
@@ -256,7 +330,249 @@ def sfx(name: str) -> np.ndarray:
         out = np.sin(_TWO_PI * 2400 * t) * np.exp(-t / 0.004) + 0.5 * np.sin(_TWO_PI * 4100 * t) * np.exp(-t / 0.0025)
         out += np.random.default_rng(3).standard_normal(n) * np.exp(-t / 0.002) * 0.3
         return _fade(out * np.minimum(t / 0.002, 1.0), 0.002, 0.006) * 0.45
+    # ---- 以下、物語用（v3）。長さ 0.2〜1.2 秒（ジングルは 1.5 / 2 秒）、_norm で pop/coin と同程度のラウドネスに揃える
+    if name == "step":
+        # 足音 2 歩（とっ、とっ）: 短い中低域のノック＋ごく短い擦れノイズ。軽く
+        out = np.zeros(int(0.45 * SR))
+        for i, (t0, f0, sd) in enumerate(((0.0, 190, 31), (0.22, 170, 32))):
+            n = int(0.12 * SR); t = np.arange(n) / SR
+            f = f0 + 130 * np.exp(-t * 120)
+            knock = np.sin(_TWO_PI * np.cumsum(f) / SR) * np.exp(-t / 0.025)
+            nz = _bandpass(_noise(n, sd), 600, 4000, 2) * np.exp(-t / 0.010) * 0.7
+            s = (knock + nz) * np.minimum(t / 0.0015, 1.0)
+            _put(out, _fade(s, 0.002, 0.03), t0, 1.0 if i == 0 else 0.85)
+        return _norm(out, -19.0, 0.55)
+    if name == "door":
+        # ドアが開いて閉まる: カチャ（金属の小さなクリック 3 つ）… 擦れ … パタン（低いドン＋木の胴鳴り＋ラッチ）
+        out = np.zeros(int(1.0 * SR))
+        for j, (dt, fc, sd, g) in enumerate(((0.0, 2600, 41, 0.5), (0.028, 3400, 42, 0.7), (0.07, 2100, 43, 0.45))):
+            n = int(0.05 * SR); t = np.arange(n) / SR
+            c = _bandpass(_noise(n, sd), fc * 0.6, fc * 1.8, 2) * np.exp(-t / 0.006)
+            c += 0.5 * np.sin(_TWO_PI * fc * t) * np.exp(-t / 0.004)
+            _put(out, _fade(c * np.minimum(t / 0.002, 1.0), 0.002, 0.01), dt, g)
+        n = int(0.4 * SR); t = np.arange(n) / SR
+        _put(out, _lowpass(_noise(n, 44), 500, 2) * np.sin(np.pi * t / 0.4) ** 2, 0.12, 0.12)
+        n = int(0.35 * SR); t = np.arange(n) / SR
+        f = 70 + 90 * np.exp(-t * 60)
+        thud = np.sin(_TWO_PI * np.cumsum(f) / SR) * np.exp(-t / 0.05)
+        body = _bandpass(_noise(n, 45), 250, 1600, 2) * np.exp(-t / 0.035) * 0.8
+        s = np.tanh((thud + body) * 1.4) * np.minimum(t / 0.002, 1.0)
+        _put(out, _fade(s, 0.002, 0.05), 0.58, 1.0)
+        n = int(0.04 * SR); t = np.arange(n) / SR
+        latch = _bandpass(_noise(n, 46), 1800, 5000, 2) * np.exp(-t / 0.005)
+        _put(out, _fade(latch * np.minimum(t / 0.002, 1.0), 0.002, 0.01), 0.63, 0.35)
+        return _norm(_reverb(out, 0.1, 0.25), -18.5, 0.6)
+    if name == "hammer":
+        # とんかち 3 回（コン、コン、コン）: 木の短い共鳴 2 本＋高い金属成分＋打撃ノイズ
+        out = np.zeros(int(0.8 * SR))
+        for i, t0 in enumerate((0.0, 0.26, 0.52)):
+            n = int(0.16 * SR); t = np.arange(n) / SR
+            k = 1 + 0.03 * ((i * 7) % 3 - 1)   # 打つたびに少しだけピッチを変える
+            s = (np.sin(_TWO_PI * 1250 * k * t) * np.exp(-t / 0.02) + 0.8 * np.sin(_TWO_PI * 520 * k * t) * np.exp(-t / 0.045)
+                 + 0.35 * np.sin(_TWO_PI * 2900 * k * t) * np.exp(-t / 0.008))
+            s += _bandpass(_noise(n, 51 + i), 900, 6000, 2) * np.exp(-t / 0.004) * 0.9
+            _put(out, _fade(s * np.minimum(t / 0.0015, 1.0), 0.002, 0.03), t0, (1.0, 0.92, 1.0)[i])
+        return _norm(_reverb(out, 0.12, 0.25), -18.0, 0.6)
+    if name == "cash":
+        # レジの「チャリーン」＋お札: キーのカチ → ベルの長い鳴り（非整数倍音、2 打）→ 紙のこすれ
+        out = np.zeros(int(1.15 * SR))
+        n = int(0.05 * SR); t = np.arange(n) / SR
+        key = _bandpass(_noise(n, 61), 1500, 6000, 2) * np.exp(-t / 0.005) + 0.4 * np.sin(_TWO_PI * 3000 * t) * np.exp(-t / 0.004)
+        _put(out, _fade(key * np.minimum(t / 0.002, 1.0), 0.002, 0.01), 0.0, 0.5)
+        n = int(0.75 * SR); t = np.arange(n) / SR; f0 = 2350.0
+        bell = (np.sin(_TWO_PI * f0 * t) * np.exp(-t / 0.28) + 0.55 * np.sin(_TWO_PI * f0 * 1.48 * t + 0.4) * np.exp(-t / 0.16)
+                + 0.3 * np.sin(_TWO_PI * f0 * 2.21 * t) * np.exp(-t / 0.09) + 0.2 * np.sin(_TWO_PI * f0 * 0.5 * t) * np.exp(-t / 0.3))
+        bell = _fade(bell * np.minimum(t / 0.002, 1.0), 0.002, 0.05)
+        _put(out, bell, 0.04, 0.7); _put(out, bell, 0.10, 0.5)
+        n = int(0.6 * SR); t = np.arange(n) / SR
+        env = sum(np.exp(-((t - c) / w) ** 2) for c, w in ((0.05, 0.03), (0.14, 0.04), (0.25, 0.03), (0.33, 0.05), (0.45, 0.03)))
+        paper = _bandpass(_noise(n, 62), 1800, 9000, 2) * env * (1 + 0.4 * np.sin(_TWO_PI * 37 * t))
+        _put(out, _fade(paper, 0.01, 0.05), 0.45, 0.22)
+        return _norm(_reverb(out, 0.15, 0.3), -18.5, 0.6)
+    if name == "stamp":
+        # ハンコ（ドン）: 低いピッチ下降＋中域の「パシッ」を軽く tanh で潰す
+        n = int(0.35 * SR); t = np.arange(n) / SR
+        f = 55 + 160 * np.exp(-t * 70)
+        thud = np.sin(_TWO_PI * np.cumsum(f) / SR) * np.exp(-t / 0.07)
+        smack = _bandpass(_noise(n, 71), 180, 2500, 2) * np.exp(-t / 0.018) * 1.2
+        s = np.tanh((thud * 1.3 + smack) * 1.5) * np.minimum(t / 0.0015, 1.0)
+        return _norm(_fade(_reverb(s, 0.1, 0.25), 0.002, 0.05), -17.5, 0.65)
+    if name == "boing":
+        # ずっこけ（ぽよん）: 三角波のピッチが揺れながら下がる
+        n = int(0.6 * SR); t = np.arange(n) / SR
+        f = (640 * np.exp(-t / 0.18) + 140) * (1 + 0.06 * np.sin(_TWO_PI * 14 * t) * np.exp(-t / 0.25))
+        ph = _TWO_PI * np.cumsum(f) / SR
+        tri = 2 * np.abs(2 * ((ph / _TWO_PI) % 1) - 1) - 1
+        s = (tri * 0.7 + 0.3 * np.sin(2 * ph) * np.exp(-t / 0.12)) * np.exp(-t / 0.22)
+        s = _lowpass(s, 2500, 1) * np.minimum(t / 0.004, 1.0)
+        return _norm(_fade(s, 0.003, 0.05), -18.0, 0.6)
+    if name == "sad":
+        # しょぼん: 柔らかい 2 音（E4 → C4）がそれぞれ語尾で下がる。小さめ
+        out = np.zeros(int(0.95 * SR))
+        for i, (nm, t0, ln) in enumerate((("E4", 0.0, 0.45), ("C4", 0.42, 0.53))):
+            f0 = _nf(nm); n = int(ln * SR); t = np.arange(n) / SR
+            bend = 2 ** (-(t / ln) ** 1.5 * (1.5 / 12))       # 終わりに向けて 1.5 半音下がる
+            ph = _TWO_PI * np.cumsum(f0 * bend) / SR
+            s = np.sin(ph) + 0.35 * np.sin(2 * ph) + 0.12 * np.sin(3 * ph)
+            env = np.minimum(t / 0.03, 1.0) * np.exp(-t / 0.25) * np.minimum(1.0, np.maximum(0.0, (ln - t) / 0.08))
+            _put(out, _fade(_lowpass(s * env, 1800, 1), 0.01, 0.05), t0, 1.0 if i == 0 else 0.7)
+        return _norm(_reverb(out, 0.2, 0.3), -24.0, 0.4)
+    if name == "shock":
+        # びっくり（ジャン）: 短いオーケストラヒット風。短調の鋸波スタブ＋ティンパニ風の低音＋シンバルのノイズ
+        n = int(0.7 * SR); t = np.arange(n) / SR
+        out = np.zeros(n)
+        for i, nm in enumerate(("C3", "G3", "C4", "Eb4", "G4", "C5", "Eb5")):
+            f = _nf(nm)
+            for det in (-0.006, 0.006):
+                out += (2 * ((t * f * (1 + det) + i * 0.23) % 1) - 1) * 0.5 * (1.0 - 0.07 * i)
+        env = np.minimum(t / 0.012, 1.0) * (np.exp(-t / 0.16) * 0.8 + 0.2 * np.exp(-t / 0.4))
+        out = _lowpass(out * env, 3500, 1) / 7
+        f = 60 + 40 * np.exp(-t * 25)
+        out += np.sin(_TWO_PI * np.cumsum(f) / SR) * np.exp(-t / 0.18) * 0.8
+        out += _highpass(_noise(n, 81), 2500, 2) * np.exp(-t / 0.09) * 0.35
+        out *= np.minimum(t / 0.003, 1.0)
+        out = _reverb(out, 0.3, 0.35) * np.minimum(1.0, np.maximum(0.0, (0.7 - t) / 0.12))
+        return _norm(_fade(out, 0.003, 0.05), -17.0, 0.65)
+    if name == "jingle_open":
+        # 冒頭ジングル 1.5 秒: 上昇 3 音（プラック、オクターブ下を薄く重ねる）→ パッドが膨らむ → キラキラ
+        n = int(1.5 * SR); t = np.arange(n) / SR
+        out = np.zeros(n)
+        for i, nm in enumerate(("C5", "E5", "G5")):
+            _put(out, _pluck(_nf(nm), 0.7, bright=1.2, seed=90 + i), i * 0.14, 1.0)
+            _put(out, _pluck(_nf(nm) / 2, 0.7, bright=0.8, seed=95 + i), i * 0.14, 0.5)
+        _put(out, _pad_chord([_nf(x) for x in ("C4", "E4", "G4", "C5")], 1.2, seed=1), 0.28, 0.9)
+        for i, nm in enumerate(("C6", "E6", "G6", "C7", "E7", "G7", "C7", "E7")):
+            f = _nf(nm); m = int(0.4 * SR); tt = np.arange(m) / SR
+            s = (np.sin(_TWO_PI * f * tt) + 0.3 * np.sin(_TWO_PI * f * 2 * tt) * np.exp(-tt / 0.06)) * np.exp(-tt / 0.12)
+            _put(out, _fade(s * np.minimum(tt / 0.002, 1.0), 0.002, 0.03), 0.5 + i * 0.055, 0.35 + 0.03 * i)
+        out = _reverb(out, 0.3, 0.4) * np.minimum(1.0, np.maximum(0.0, (1.5 - t) / 0.2))
+        return _norm(_fade(out, 0.003, 0.08), -18.0, 0.6)
+    if name == "jingle_end":
+        # 締めジングル 2 秒: 下がって落ち着く 3 音 → 主和音（丸いプラック＋低いパッド＋ベース）、長めの残響
+        n = int(2.0 * SR); t = np.arange(n) / SR
+        out = np.zeros(n)
+        for i, nm in enumerate(("G5", "E5", "D5")):
+            _put(out, _pluck(_nf(nm), 0.6, bright=0.6, seed=100 + i), i * 0.22, 0.9 - 0.1 * i)
+        for i, nm in enumerate(("C4", "E4", "G4", "C5")):
+            _put(out, _pluck(_nf(nm), 1.3, bright=0.5, seed=110 + i), 0.66 + i * 0.03, 0.8)
+        _put(out, _lowpass(_pad_chord([_nf(x) for x in ("C3", "G3", "C4", "E4")], 1.3, seed=2), 900, 1), 0.62, 1.2)
+        _put(out, _bass_note(_nf("C2"), 1.2), 0.66, 0.6)
+        out = _reverb(out, 0.35, 0.45) * np.minimum(1.0, np.maximum(0.0, (2.0 - t) / 0.35))
+        return _norm(_fade(out, 0.003, 0.1), -19.0, 0.55)
     raise ValueError(name)
+
+# ---------------------------------------------------------------- 環境音（ループ素材）
+def ambience(name: str, seconds: float, seed: int = 1) -> np.ndarray:
+    """指定秒数の環境音。末尾→頭がつながるループ素材（約 -30 LUFS、小さめ）。
+    長い尺（数分以上）は、十数秒ぶんを作って np.tile で繰り返すほうがメモリも時間も軽い"""
+    n = int(seconds * SR)
+    if n <= 0: return np.zeros(0)
+    xf = min(1.0, seconds / 2)
+    m = n + int(xf * SR)                     # 背景はクロスフェードぶん長めに作る
+    rng = np.random.default_rng(seed * 1000 + len(name))
+    tm = np.arange(m) / SR
+    if name == "street":
+        # 風の低いノイズがゆっくり膨らみ、木の葉のざわめきが薄く乗る。ときどき鳥
+        bg = _lowpass(_noise(m, seed), 260, 2) * _slow_lfo(m, 0.25, seed + 1, 0.7)
+        bg += _bandpass(_noise(m, seed + 2), 300, 1200, 2) * _slow_lfo(m, 0.4, seed + 3, 0.9) * 0.15
+        out = _loop(bg, n, xf)
+        t_ev = rng.uniform(0.0, 1.5)
+        while t_ev < seconds:
+            _put_wrap(out, _bird(rng), t_ev, rng.uniform(0.5, 1.0) * 0.12)
+            t_ev += rng.uniform(1.2, 3.5)
+    elif name == "night":
+        # 遠くの車（低い唸り＋ときどき通り過ぎる膨らみ）＋虫の音（リーン、リーン）2 匹
+        rumble = _lowpass(_noise(m, seed), 140, 2) * (0.5 + 0.5 * _slow_lfo(m, 0.2, seed + 1))
+        road = _bandpass(_noise(m, seed + 2), 150, 900, 2)
+        env = np.full(m, 0.12); t_ev = rng.uniform(0.0, 4.0)
+        while t_ev < seconds + 1:
+            env += np.exp(-((tm - t_ev) / rng.uniform(1.5, 3.0)) ** 2) * rng.uniform(0.4, 1.0)
+            t_ev += rng.uniform(5.0, 12.0)
+        out = _loop(rumble * 0.8 + road * env * 0.5, n, xf)
+        for j in range(2):
+            f0 = rng.uniform(3800, 4600); trem = rng.uniform(26, 36); dur = rng.uniform(0.55, 0.8); gap = rng.uniform(0.3, 0.6)
+            tt = rng.uniform(0.0, 1.0)
+            while tt < seconds:
+                k = int(dur * SR); t = np.arange(k) / SR
+                s = np.sin(_TWO_PI * f0 * t) * (0.55 + 0.45 * np.sin(_TWO_PI * trem * t)) * np.sin(np.pi * t / dur) ** 0.5
+                s += 0.15 * np.sin(_TWO_PI * f0 * 2 * t) * np.sin(np.pi * t / dur)
+                _put_wrap(out, s, tt, (0.05, 0.03)[j])
+                tt += dur + gap * rng.uniform(0.9, 1.3)
+    elif name == "rain":
+        # 雨: 高域寄りの広いノイズがゆっくり強弱＋遠くの低い層。ときどき大きめの雫（ピチョン／ポツ）
+        bg = _bandpass(_noise(m, seed), 400, 9000, 1) * (0.75 + 0.25 * _slow_lfo(m, 0.3, seed + 1))
+        bg += _lowpass(_noise(m, seed + 2), 300, 2) * 0.35
+        out = _loop(bg, n, xf)
+        t_ev = rng.uniform(0.0, 0.5); i = 0; since_big = 0
+        while t_ev < seconds:
+            d = rng.uniform(0.03, 0.08); k = int(d * SR); t = np.arange(k) / SR
+            f0 = rng.uniform(900, 2600)
+            f = f0 * (1 + 0.6 * np.exp(-t / 0.01)) if rng.random() < 0.5 else f0 * (1 + 0.5 * t / d)
+            s = np.sin(_TWO_PI * np.cumsum(f) / SR) * np.exp(-t / (d * 0.35))
+            s += _bandpass(_noise(k, seed + 100 + i), 1500, 7000, 2) * np.exp(-t / 0.004) * 0.6
+            big = rng.random() < 0.25 or since_big >= 4          # 4〜5 粒に 1 つは大きめ
+            since_big = 0 if big else since_big + 1
+            _put_wrap(out, _fade(s, 0.002, 0.01), t_ev, rng.uniform(2.5, 3.5) if big else rng.uniform(0.5, 1.0))
+            t_ev += rng.uniform(0.15, 0.9); i += 1
+    elif name == "room":
+        # 静かな室内: 50 Hz のハム（倍音 2 本）がわずかに揺れる＋空気感のノイズ＋ごく小さい時計（チッ・タッ）
+        hum = np.sin(_TWO_PI * 50 * tm) + 0.35 * np.sin(_TWO_PI * 100 * tm + 0.3) + 0.12 * np.sin(_TWO_PI * 150 * tm + 1.1)
+        hum *= 0.6 + 0.4 * _slow_lfo(m, 0.15, seed, 1.0)
+        air = _lowpass(_noise(m, seed + 1), 180, 2) * 1.0 + _bandpass(_noise(m, seed + 2), 200, 2000, 2) * 0.07
+        out = _loop(hum * 0.35 + air, n, xf)
+        k = max(1, int(round(seconds))); step = seconds / k     # ループが割り切れるよう 1 秒前後に調整
+        for i in range(k):
+            q = int(0.025 * SR); t = np.arange(q) / SR; fc = 3200 if i % 2 == 0 else 2600
+            s = _bandpass(_noise(q, seed + 10 + i), fc * 0.6, fc * 1.8, 2) * np.exp(-t / 0.003) + 0.4 * np.sin(_TWO_PI * fc * t) * np.exp(-t / 0.003)
+            _put_wrap(out, _fade(s, 0.002, 0.006), i * step + 0.3, 0.09)
+    elif name == "site":
+        # 工事現場: 低い唸り＋遠くの電動工具（鋸波、立ち上がりと負荷でピッチが揺れ、数秒で止む）＋ときどき金属音（カーン）
+        rumble = _lowpass(_noise(m, seed), 200, 2) * (0.6 + 0.4 * _slow_lfo(m, 0.3, seed + 1))
+        tool = np.zeros(m); t_ev = rng.uniform(0.0, 2.0)
+        while t_ev < seconds + 1:
+            d = rng.uniform(1.2, 3.0); k = int(d * SR); t = np.arange(k) / SR
+            f0 = rng.uniform(95, 170)
+            f = f0 * (1 - 0.25 * np.exp(-t / 0.15)) * (1 + 0.05 * np.sin(_TWO_PI * rng.uniform(0.6, 1.5) * t + rng.uniform(0, 6)))
+            f *= 1 - 0.3 * np.maximum(0.0, (t - (d - 0.25)) / 0.25)
+            ph = np.cumsum(f) / SR
+            s = _lowpass((2 * (ph % 1) - 1) + 0.3 * (2 * ((ph * 2.01) % 1) - 1), 1400, 2)
+            env = np.minimum(t / 0.15, 1.0) * np.minimum(1.0, np.maximum(0.0, (d - t) / 0.3))
+            _put(tool, s * env, t_ev, rng.uniform(0.5, 1.0))
+            t_ev += d + rng.uniform(0.8, 3.0)
+        out = _loop(rumble * 0.9 + tool * 0.4, n, xf)
+        t_ev = rng.uniform(0.3, 2.5); i = 0
+        while t_ev < seconds:
+            k = int(0.45 * SR); t = np.arange(k) / SR; f0 = rng.uniform(700, 1500)
+            s = sum(a * np.sin(_TWO_PI * f0 * r * t + rng.uniform(0, 6)) * np.exp(-t / dc)
+                    for r, a, dc in ((1.0, 1.0, 0.18), (1.58, 0.6, 0.12), (2.32, 0.4, 0.08), (3.4, 0.25, 0.05)))
+            s += _bandpass(_noise(k, seed + 200 + i), 1500, 6000, 2) * np.exp(-t / 0.004) * 0.7
+            s = _highpass(_fade(s * np.minimum(t / 0.002, 1.0), 0.002, 0.05), 400, 1)
+            _put_wrap(out, _reverb(s, 0.3, 0.35), t_ev, rng.uniform(0.25, 0.6) * 0.3)
+            t_ev += rng.uniform(1.5, 4.5); i += 1
+    else:
+        raise ValueError(name)
+    return _norm(out, -30.0, 0.35)
+
+def _sheet(out_dir, gap: float = 0.4, amb_seconds: float = 6.0) -> str:
+    """検査用: 全効果音を gap 秒おきに並べた sfx_sheet.wav と、各環境音 amb_*.wav（と個別の sfx_*.wav）を書き出し、
+    長さ・ピーク・LUFS の表を文字列で返す"""
+    from pathlib import Path
+    out_dir = Path(out_dir); out_dir.mkdir(parents=True, exist_ok=True)
+    rows = []; parts = []
+    for nm in SFX_NAMES:
+        x = sfx(nm); parts += [x, np.zeros(int(gap * SR))]
+        rows.append((nm, len(x) / SR, float(np.max(np.abs(x))), _lufs(x)))
+        write_wav(out_dir / f"sfx_{nm}.wav", x)
+    sheet = np.concatenate(parts)
+    write_wav(out_dir / "sfx_sheet.wav", sheet)
+    for nm in AMBIENCE_NAMES:
+        x = ambience(nm, amb_seconds)
+        rows.append((f"amb:{nm}", len(x) / SR, float(np.max(np.abs(x))), _lufs(x)))
+        write_wav(out_dir / f"amb_{nm}.wav", x)
+    lines = [f"{'name':12s} {'sec':>6s} {'peak':>6s} {'LUFS':>6s}"]
+    lines += [f"{nm:12s} {sec:6.2f} {pk:6.3f} {lu:6.1f}" + ("  CLIP!" if pk > 1 else "") for nm, sec, pk, lu in rows]
+    lines.append(f"wrote {out_dir / 'sfx_sheet.wav'} ({len(sheet) / SR:.1f}s), amb_*.wav ({amb_seconds:g}s each), sfx_*.wav")
+    return "\n".join(lines)
 
 # ---------------------------------------------------------------- BGM
 _CHORDS = {
@@ -400,9 +716,16 @@ def write_wav(path, data: np.ndarray, sr=SR):
 if __name__ == "__main__":
     import sys
     from pathlib import Path
-    out = Path(sys.argv[1] if len(sys.argv) > 1 else ".")
-    out.mkdir(parents=True, exist_ok=True)
-    for n in ("pop", "coin", "sparkle", "whoosh", "ding", "reveal", "riser", "tick"):
-        write_wav(out / f"sfx_{n}.wav", sfx(n))
-    write_wav(out / "bgm_synth.wav", bgm(60))
-    print("wrote", out)
+    args = sys.argv[1:]
+    if args and args[0] == "sheet":
+        # python audio_synth.py sheet out_dir  → 全効果音を 0.4 秒おきに並べた wav と各環境音 6 秒の wav、ラウドネス表
+        print(_sheet(Path(args[1] if len(args) > 1 else ".")))
+    else:
+        out = Path(args[0] if args else ".")
+        out.mkdir(parents=True, exist_ok=True)
+        for n in SFX_NAMES:
+            write_wav(out / f"sfx_{n}.wav", sfx(n))
+        for n in AMBIENCE_NAMES:
+            write_wav(out / f"amb_{n}.wav", ambience(n, 6))
+        write_wav(out / "bgm_synth.wav", bgm(60))
+        print("wrote", out)
