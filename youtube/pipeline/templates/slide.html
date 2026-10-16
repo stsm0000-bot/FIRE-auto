@@ -3,8 +3,8 @@
 <style>
 :root{
   --w:{{W}}px; --h:{{H}}px;
-  --paper:#F6F2EA; --ink:#1B1B1B; --mute:#6B6660; --line:#1B1B1B;
-  --accent:#C8321E; --blue:#2F5FB3; --brown:#A3631C; --green:#2E7D32; --box:#FFFFFF; --boxon:#E8EEF9; --off:.18;
+  --paper:#FFF8E7; --ink:#1F2A44; --mute:#6E6A5E; --line:#1F2A44;
+  --accent:#FF7A1A; --blue:#2F80ED; --brown:#FF7A1A; --green:#1FA463; --gold:#F2B705; --box:#FFFFFF; --boxon:#FFF1DC; --off:.18;
   --fs-h:64px; --fs-item:54px; --fs-note:36px; --fs-big:92px; --fs-huge:220px; --pad:96px; --subband:230px;
 }
 html[data-kind="short"]{ --fs-h:60px; --fs-item:56px; --fs-note:36px; --fs-big:96px; --fs-huge:200px; --pad:64px; --subband:720px; }
@@ -12,9 +12,8 @@ html[data-kind="short"]{ --fs-h:60px; --fs-item:56px; --fs-note:36px; --fs-big:9
 html,body{width:var(--w);height:var(--h);overflow:hidden;background:var(--paper);
   font-family:"{{FONT}}","Noto Sans JP","BIZ UDPGothic","Meiryo","IPAPGothic",sans-serif;color:var(--ink);font-feature-settings:"palt";}
 body::before{content:"";position:absolute;inset:0;pointer-events:none;
-  background-image:linear-gradient(rgba(27,27,27,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(27,27,27,.045) 1px,transparent 1px);
-  background-size:64px 64px;}
-body::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 40%,transparent 55%,rgba(27,27,27,.08) 100%)}
+  background-image:radial-gradient(rgba(255,122,26,.10) 2px,transparent 2.5px);background-size:48px 48px;}
+body::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 40%,transparent 60%,rgba(255,122,26,.10) 100%)}
 .stage{position:absolute;inset:0;display:flex;flex-direction:column;z-index:1}
 .top{display:flex;align-items:center;justify-content:space-between;padding:40px var(--pad) 0;height:120px}
 .q{font-size:34px;font-weight:700;background:#fff;border:3px solid var(--ink);border-radius:999px;padding:12px 30px;max-width:78%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -40,7 +39,7 @@ html[data-kind="short"] .q{max-width:92%;font-size:30px}
 
 /* 章扉 */
 .chapter{text-align:center}
-.chapter .num{font-size:140px;font-weight:900;color:var(--accent);line-height:1}
+.chapter .num{display:inline-block;font-size:120px;font-weight:900;color:#fff;background:var(--accent);width:200px;height:200px;line-height:200px;border-radius:50%;box-shadow:0 12px 0 rgba(31,42,68,.18)}
 .chapter .ttl{font-size:var(--fs-big);font-weight:900;margin-top:24px;line-height:1.25}
 /* タイトル */
 .title{text-align:center}
@@ -53,6 +52,7 @@ html[data-kind="short"] .q{max-width:92%;font-size:30px}
 .box{display:flex;align-items:center;gap:28px;background:var(--box);border:4px solid var(--line);border-radius:22px;padding:22px 40px;
   box-shadow:0 8px 0 rgba(0,0,0,.12);font-size:var(--fs-item);font-weight:700}
 .box.on{background:var(--boxon)}
+.box .n{background:var(--accent)!important}
 .box .n{display:inline-flex;align-items:center;justify-content:center;width:84px;height:84px;border-radius:50%;background:var(--ink);color:#fff;font-size:48px;font-weight:900;flex:none}
 .box .t{flex:1}
 .box .note{font-size:var(--fs-note);color:var(--accent);font-weight:700;white-space:nowrap}
@@ -61,6 +61,7 @@ html[data-kind="short"] .q{max-width:92%;font-size:30px}
 .flow .row{display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap}
 .flow .box{flex-direction:column;gap:12px;min-width:340px;text-align:center;padding:30px 34px}
 .flow .box .v{font-size:var(--fs-big);font-weight:900;color:var(--accent);line-height:1.1}
+.flow .box.sum .v{color:var(--green)}
 .flow .box.sum{background:#fff;border-color:var(--accent)}
 .flow .arrow{font-size:80px;font-weight:900;color:var(--accent)}
 .flow .op{font-size:90px;font-weight:900;color:var(--ink)}
@@ -81,7 +82,7 @@ html[data-kind="short"] .compare{flex-direction:column}
 .bl{white-space:nowrap}
 html[data-kind="short"] .brow{grid-template-columns:1fr;gap:10px}
 .bt{height:64px;background:#fff;border:4px solid var(--line);border-radius:14px;overflow:hidden}
-.bf{height:100%;background:var(--accent);min-width:12px}
+.bf{height:100%;background:linear-gradient(90deg,var(--accent),var(--gold));min-width:12px}
 .bv{color:var(--accent);font-size:var(--fs-note)}
 /* 例文 */
 .quote{width:100%;max-width:1500px}
@@ -98,6 +99,7 @@ html[data-kind="short"] .ending{width:100%;text-align:center}
 .counter{text-align:center;width:100%}
 .counter .lbl{font-size:var(--fs-h);font-weight:900;color:var(--mute)}
 .counter .num{font-size:var(--fs-huge);font-weight:900;color:var(--accent);line-height:1.1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.counter.money .num{color:var(--green)}
 .counter .num small{font-size:.42em;color:var(--ink);margin-left:12px}
 .counter .sub{font-size:var(--fs-item);font-weight:700;margin-top:24px}
 /* 戸建ての積み上げ */
@@ -112,9 +114,18 @@ html[data-kind="short"] .house svg{width:120px;height:104px}
 html[data-kind="short"] .totals{width:100%;flex-direction:row;gap:14px}
 .tot{background:#fff;border:4px solid var(--line);border-radius:22px;padding:18px 30px;box-shadow:0 8px 0 rgba(0,0,0,.12);flex:1}
 .tot .tl{font-size:32px;font-weight:700;color:var(--mute)}
-.tot .tv{font-size:76px;font-weight:900;color:var(--accent);line-height:1.1;font-variant-numeric:tabular-nums}
+.tot .tv{font-size:76px;font-weight:900;color:var(--green);line-height:1.1;font-variant-numeric:tabular-nums}
 .tot .tv small{font-size:.5em;color:var(--ink)}
 html[data-kind="short"] .tot .tv{font-size:56px}
+/* コインの山 */
+.coins{display:flex;align-items:flex-end;gap:10px;height:260px;margin-top:10px}
+.stack{display:flex;flex-direction:column-reverse;align-items:center}
+.coin{width:64px;height:18px;border-radius:50%;background:linear-gradient(180deg,#FFD84D,#E0A400);border:3px solid #B88600;margin-top:-8px;box-shadow:0 2px 0 rgba(0,0,0,.15)}
+html[data-kind="short"] .coins{height:180px}
+/* 紙吹雪 */
+.burst{position:absolute;left:50%;top:45%;width:0;height:0;pointer-events:none}
+.burst i{position:absolute;width:18px;height:28px;border-radius:4px;opacity:0;animation:confetti 1.3s cubic-bezier(.1,.8,.3,1) forwards;animation-delay:var(--d)}
+@keyframes confetti{0%{opacity:0;transform:translate(0,0) rotate(0)}10%{opacity:1}100%{opacity:0;transform:translate(var(--x),var(--y)) rotate(var(--r))}}
 /* 年表 */
 .timeline{width:100%;max-width:1700px}
 .tl-line{position:relative;height:10px;background:var(--ink);border-radius:5px;margin:60px 0 40px}
