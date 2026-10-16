@@ -12,6 +12,7 @@
 | `docs/07_実例シリーズの作り方.md` | 自分の物件を特定されずに数字で語る線引き、公開前の確認表 |
 | `docs/08_事業計画.md` | 収益の見立て、収益化までの道筋、12 週の計画、見る数字 |
 | `pipeline/make_video.py` | 台本（YAML）から mp4・サムネ・説明文を作る |
+| `pipeline/audio_synth.py` | 効果音と BGM の自前合成（権利問題なし） |
 | `pipeline/render_frames.js` | 動き（出現・数字が伸びる・戸建てが増える）を 1 コマずつ撮る（node + Playwright） |
 | `scripts/` | 台本。`NNN_題名.yaml`（長尺）、`SNNN_題名.yaml`（ショート） |
 
