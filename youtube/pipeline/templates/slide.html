@@ -145,7 +145,7 @@ html[data-kind="short"] .tot .tv{font-size:60px}
 .cast{display:flex;justify-content:center;gap:120px;margin-top:40px}
 html[data-kind="short"] .cast{gap:40px}
 .castc{display:flex;flex-direction:column;align-items:center;gap:10px}
-.castc svg{width:260px;height:260px}
+.castc svg{width:320px;height:320px}
 .cname{color:#fff;font-size:40px;font-weight:900;padding:6px 26px;border-radius:999px}
 .cdesc{font-size:30px;color:var(--mute);font-weight:700;max-width:420px;text-align:center;line-height:1.35}
 /* コインの山 */
@@ -197,7 +197,7 @@ html[data-kind="short"] .ph .ph-empty{height:420px}
 /* キャラ紹介つきで見出しが 2 行のとき: 詰める */
 .title.compact .sub{margin-top:18px;font-size:calc(var(--fs-h) * .8)}
 .title.compact .cast{margin-top:22px;gap:80px}
-.title.compact .castc svg{width:190px;height:190px}
+.title.compact .castc svg{width:230px;height:230px}
 .title.compact .cname{font-size:34px}
 .title.compact .cdesc{font-size:26px;max-width:520px}
 /* ---- scene ---- */
@@ -279,6 +279,7 @@ html[data-kind="short"] .scene.has-hl .prop:not(.hang):not(.ground){--y:40%}
 .scene .price{display:flex;flex-direction:column;align-items:center}
 .scene .price .string{width:6px;height:var(--sl,140px);background:#B5651D;border-radius:3px}
 html[data-kind="short"] .scene .price .string{--sl:200px}
+html[data-kind="short"] .scene.has-hl .price .string{--sl:50px}   /* 見出しがあるとき、札が人型キャラの顔にかからない高さで止める */
 .scene .price .tag{position:relative;background:#fff;border:6px solid var(--ink);border-radius:26px;padding:16px 50px 22px;font-weight:900;color:var(--accent);line-height:1.05;white-space:nowrap;
   box-shadow:0 10px 0 rgba(31,42,68,.16);rotate:-5deg;transform-origin:50% 0;font-variant-numeric:tabular-nums}
 .scene .price .tag::before{content:"";position:absolute;left:50%;top:-14px;width:24px;height:24px;border-radius:50%;background:var(--paper);border:5px solid var(--ink);translate:-50% 0;box-sizing:border-box}

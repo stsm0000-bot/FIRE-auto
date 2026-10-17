@@ -5,7 +5,7 @@ scenes.py ― 物語シーン（layout: scene）の描画。docs/12_物語シー
   render_scene(data, step, prev_step, anim, kind, faces, talking, variant, script_dir) -> {{BODY}} に入れる HTML 断片
     data     : YAML の場面（bg, time, weather, camera, chars, props, steps …）
     kind     : "long"(1920x1080) / "short"(1080x1920)
-    faces    : {"ぽん太": "surprised", ...} その台詞でのキャラの表情
+    faces    : {"ソウタ": "surprised", ...} その台詞でのキャラの表情
     talking  : 話している側のキャラ名（None なら誰も話していない）
     variant  : "closed"（全員口を閉じる）/ "open"（talking の口を開く）/ "blink"（全員まばたき）
                3 変種で口と目以外は 1 ピクセルも変わらない（乱数は場面 id で seed 固定）
@@ -860,7 +860,7 @@ def char_html(c: dict, idx: int, n_chars: int, faces: dict, talking, variant: st
     style = [f"left:{x:.2f}%", f"--cs:{size}px"]
     lift = COUNTER_BG.get(bg, 0)
     if act == "sit":
-        lift -= 40 if who == "ぽん太" else 20
+        lift -= 40 if ch.get("role") == "聞" else 20   # 聞き役（ソウタ／旧ぽん太）は机の奥で少し低く
         lift = max(lift, 0) if bg not in COUNTER_BG else lift
     if lift:
         style.append(f"--lift:{lift}px")
@@ -1004,8 +1004,8 @@ def shoot(chrome: str, html_path: Path, png: Path, size: tuple[int, int], t: int
 
 def _sample_scene(bg, time="day", weather="sun", camera="still", chars=None, props=None, sid=None):
     return {"id": sid or f"pv_{bg}_{time}_{weather}_{camera}", "bg": bg, "time": time, "weather": weather, "camera": camera,
-            "chars": chars if chars is not None else [{"who": "ぽん太", "at": "left", "act": "stand", "face": "normal"},
-                                                      {"who": "コツさん", "at": "right", "act": "stand", "face": "happy"}],
+            "chars": chars if chars is not None else [{"who": "ソウタ", "at": "left", "act": "stand", "face": "normal"},
+                                                      {"who": "ユイさん", "at": "right", "act": "stand", "face": "happy"}],
             "props": props or []}
 
 def preview(out_dir: Path):
@@ -1040,50 +1040,50 @@ def preview(out_dir: Path):
     # 4) 小道具（長尺 5 枚・ショート 3 枚）
     P1 = [{"kind": "headline", "text": "買値50万円の家"}, {"kind": "price", "text": "50万円", "at": "center"},
           {"kind": "sign", "text": "売地", "x": 36}, {"kind": "coins", "count": 14, "x": 64},
-          {"kind": "bubble", "text": "安っ！", "who": "ぽん太"}, {"kind": "exclaim", "who": "コツさん"}]
+          {"kind": "bubble", "text": "安っ！", "who": "ソウタ"}, {"kind": "exclaim", "who": "ユイさん"}]
     add("props_1", "long", _sample_scene("blank", props=P1, sid="props1"))
     P2 = [{"kind": "calendar", "text": "4か月", "x": 36}, {"kind": "stamp", "text": "空室", "at": "center"},
-          {"kind": "arrow", "text": "家賃7万円", "dir": "up", "x": 64}, {"kind": "sweat", "who": "ぽん太"}, {"kind": "question", "who": "コツさん"}]
+          {"kind": "arrow", "text": "家賃7万円", "dir": "up", "x": 64}, {"kind": "sweat", "who": "ソウタ"}, {"kind": "question", "who": "ユイさん"}]
     add("props_2", "long", _sample_scene("blank", props=P2, sid="props2",
-                                          chars=[{"who": "ぽん太", "at": "left", "act": "think"}, {"who": "コツさん", "at": "right", "act": "point"}]))
+                                          chars=[{"who": "ソウタ", "at": "left", "act": "think"}, {"who": "ユイさん", "at": "right", "act": "point"}]))
     P3 = [{"kind": "money", "text": "150万円", "x": 37}, {"kind": "cross", "at": "center"}, {"kind": "check", "x": 63},
-          {"kind": "heart", "who": "ぽん太"}, {"kind": "zzz", "who": "コツさん"}]
+          {"kind": "heart", "who": "ソウタ"}, {"kind": "zzz", "who": "ユイさん"}]
     add("props_3", "long", _sample_scene("blank", props=P3, sid="props3",
-                                          chars=[{"who": "ぽん太", "at": "left", "act": "cheer"}, {"who": "コツさん", "at": "right", "act": "shock"}]))
+                                          chars=[{"who": "ソウタ", "at": "left", "act": "cheer"}, {"who": "ユイさん", "at": "right", "act": "shock"}]))
     P4 = [{"kind": "photo", "caption": "直す前の外観", "at": "left"}, {"kind": "counter", "value": 1000, "unit": "万円", "label": "年の家賃", "at": "center"},
-          {"kind": "star", "who": "コツさん"}, {"kind": "bubble", "text": "数字は買値、直し、家賃の順に見ます", "who": "コツさん"}]
+          {"kind": "star", "who": "ユイさん"}, {"kind": "bubble", "text": "数字は買値、直し、家賃の順に見ます", "who": "ユイさん"}]
     add("props_4", "long", _sample_scene("blank", props=P4, sid="props4",
-                                          chars=[{"who": "コツさん", "at": "right", "act": "bow"}]))
-    P5 = [{"kind": "headline", "text": "融資は断られました"}, {"kind": "cross", "at": "center"}, {"kind": "sweat", "who": "ぽん太"},
+                                          chars=[{"who": "ユイさん", "at": "right", "act": "bow"}]))
+    P5 = [{"kind": "headline", "text": "融資は断られました"}, {"kind": "cross", "at": "center"}, {"kind": "sweat", "who": "ソウタ"},
           {"kind": "arrow", "text": "次へ", "dir": "right", "at": "right"}]
     add("props_5", "long", _sample_scene("bank", props=P5, sid="props5",
-                                          chars=[{"who": "ぽん太", "at": "left", "act": "sit", "face": "doubt"}]))
-    add("short_1", "short", _sample_scene("house_old", props=[P1[0], P1[1], {"kind": "sign", "text": "再建築不可", "x": 50, "step": 1}, {"kind": "bubble", "text": "ボロい…", "who": "ぽん太"}], sid="s1"))
+                                          chars=[{"who": "ソウタ", "at": "left", "act": "sit", "face": "doubt"}]))
+    add("short_1", "short", _sample_scene("house_old", props=[P1[0], P1[1], {"kind": "sign", "text": "再建築不可", "x": 50, "step": 1}, {"kind": "bubble", "text": "ボロい…", "who": "ソウタ"}], sid="s1"))
     add("short_2", "short", _sample_scene("street", "evening", props=[{"kind": "headline", "text": "物件を探して歩く"}, {"kind": "price", "text": "1,000万円／年", "at": "center"}],
-                                            sid="s2", chars=[{"who": "ぽん太", "at": "center", "act": "walk"}]))
-    add("short_3", "short", _sample_scene("desk", "night", props=[{"kind": "calendar", "text": "4か月", "at": "right"}, {"kind": "zzz", "who": "ぽん太"},
+                                            sid="s2", chars=[{"who": "ソウタ", "at": "center", "act": "walk"}]))
+    add("short_3", "short", _sample_scene("desk", "night", props=[{"kind": "calendar", "text": "4か月", "at": "right"}, {"kind": "zzz", "who": "ソウタ"},
                                                                  {"kind": "counter", "value": 7, "unit": "万円", "label": "月の家賃", "at": "left"}],
-                                            sid="s3", chars=[{"who": "ぽん太", "at": "center", "act": "sit", "face": "calm"}]))
-    add("bankbook_s4", "long", _sample_scene("bankbook", chars=[{"who": "コツさん", "at": "right", "act": "point"}],
+                                            sid="s3", chars=[{"who": "ソウタ", "at": "center", "act": "sit", "face": "calm"}]))
+    add("bankbook_s4", "long", _sample_scene("bankbook", chars=[{"who": "ユイさん", "at": "right", "act": "point"}],
                                                props=[{"kind": "counter", "value": 7, "unit": "万円", "label": "月の家賃", "at": "left"}], sid="bb4"),
         step=4, prev=2, t=350)
     # 5) カメラ 6 × 4 コマ（walk / 出現アニメ入り）
     for cam in CAMERAS:
         sc = _sample_scene("street", camera=cam, sid=f"cam_{cam}",
-                           chars=[{"who": "ぽん太", "at": "left", "act": "walk"}, {"who": "コツさん", "at": "right", "act": "cheer"}],
+                           chars=[{"who": "ソウタ", "at": "left", "act": "walk"}, {"who": "ユイさん", "at": "right", "act": "cheer"}],
                            props=[{"kind": "headline", "text": f"camera: {cam}"}, {"kind": "price", "text": "50万円", "at": "center", "step": 1}])
         for t in (0, 300, 700, 1300):
             add(f"cam_{cam}_{t:04d}", "long", sc, t=t)
     # anim=False の静止画と、anim=True の最終コマ（t=1e7）が同じ絵であること
     sc = _sample_scene("street", camera="in", sid="cam_in",
-                       chars=[{"who": "ぽん太", "at": "left", "act": "walk"}, {"who": "コツさん", "at": "right", "act": "cheer"}],
+                       chars=[{"who": "ソウタ", "at": "left", "act": "walk"}, {"who": "ユイさん", "at": "right", "act": "cheer"}],
                        props=[{"kind": "headline", "text": "camera: in"}, {"kind": "price", "text": "50万円", "at": "center", "step": 1}])
     add("end_anim", "long", sc, t=None); add("end_static", "long", sc, anim=False, t=None)
     # 6) 口パク 3 変種（差分の確認用）
-    vs = _sample_scene("office", props=[{"kind": "headline", "text": "口パクの確認"}, {"kind": "bubble", "text": "えっ！？", "who": "ぽん太"}], sid="var",
-                       chars=[{"who": "ぽん太", "at": "left", "act": "point"}, {"who": "コツさん", "at": "right", "act": "stand"}])
+    vs = _sample_scene("office", props=[{"kind": "headline", "text": "口パクの確認"}, {"kind": "bubble", "text": "えっ！？", "who": "ソウタ"}], sid="var",
+                       chars=[{"who": "ソウタ", "at": "left", "act": "point"}, {"who": "ユイさん", "at": "right", "act": "stand"}])
     for v in ("closed", "open", "blink"):
-        add(f"var_{v}", "long", vs, faces={"ぽん太": "surprised"}, talking="ぽん太", variant=v, t=700)
+        add(f"var_{v}", "long", vs, faces={"ソウタ": "surprised"}, talking="ソウタ", variant=v, t=700)
 
     # 描画
     def work(job):
@@ -1149,11 +1149,11 @@ def check_variants(png_dir: Path, prefix: str):
     from PIL import Image, ImageChops
     ims = {v: Image.open(Path(png_dir) / f"{prefix}_{v}.png").convert("RGB") for v in ("closed", "open", "blink")}
     W, H, G = geometry("long"); size = CHAR_SIZE_2["long"]
-    # ぽん太（left=20%）の顔の中心（viewBox 150,150）。.scene は top 124px から始まる
+    # ソウタ（left=20%）の顔の中心（viewBox 150, FACE_CY）。.scene は top 124px から始まる
     fx = AT_X["long"]["left"] * W / 100; top = 124 + G - size
-    face = {"ぽん太": (fx, top + size * 150 / 300), "コツさん": (AT_X["long"]["right"] * W / 100, top + size * 232 / 300)}
+    face = {"ソウタ": (fx, top + size * characters.FACE_CY / 300), "ユイさん": (AT_X["long"]["right"] * W / 100, top + size * characters.FACE_CY / 300)}
     ok = True
-    for a, b, who in (("closed", "open", "ぽん太"), ("closed", "blink", None)):
+    for a, b, who in (("closed", "open", "ソウタ"), ("closed", "blink", None)):
         d = ImageChops.difference(ims[a], ims[b]).convert("L").point(lambda v: 255 if v > 24 else 0)
         bbox = d.getbbox()
         if not bbox:

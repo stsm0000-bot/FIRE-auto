@@ -123,11 +123,13 @@ def load_script(path: Path) -> dict:
     doc = yaml.safe_load(path.read_text(encoding="utf-8"))
     doc.setdefault("kind", "long")
     doc.setdefault("speakers", {
-        "聞": {"speaker": "ずんだもん", "style": "ノーマル", "name": "ぽん太", "color": "#2F80ED", "char": "ぽん太"},
-        "答": {"speaker": "青山龍星", "style": "ノーマル", "name": "コツさん", "color": "#FF7A1A", "char": "コツさん"},
+        "聞": {"speaker": "ずんだもん", "style": "ノーマル", "name": "ソウタ", "color": "#2F80ED", "char": "ソウタ"},
+        "答": {"speaker": "九州そら", "style": "ノーマル", "name": "ユイさん", "color": "#FF7A1A", "char": "ユイさん",
+               "style_map": {"喜び": "あまあま", "熱血": "ツンツン", "しっとり": "ノーマル", "かなしみ": "ノーマル",
+                             "不機嫌": "ツンツン", "囁き": "ささやき"}},
     })
     for key, sp in doc["speakers"].items():
-        sp.setdefault("char", "コツさん" if key == "答" else "ぽん太")
+        sp.setdefault("char", "ユイさん" if key == "答" else "ソウタ")
     doc.setdefault("voice", {})
     doc["voice"] = {"speed": 1.08, "intonation": 1.25, "pitch": 0.0} | doc["voice"]
     scenes: list[Scene] = []
@@ -486,8 +488,8 @@ def mouth_segments(start: float, end: float, speech: float, t0: float) -> list[t
     return segs
 
 def thumb_char(th: dict) -> str:
-    """サムネのキャラ。thumbnail の char（ぽん太/コツさん）・face（surprised など）・act（ポーズ）で指定。既定はコツさんの喜び"""
-    ch = characters.CHARACTERS.get(str(th.get("char", "コツさん")), characters.CHARACTERS["コツさん"])
+    """サムネのキャラ。thumbnail の char（ユイさん/ソウタ。旧: コツさん/ぽん太）・face（surprised など）・act（ポーズ）で指定。既定はユイさんの喜び"""
+    ch = characters.CHARACTERS.get(str(th.get("char", "ユイさん")), characters.CHARACTERS["ユイさん"])
     face = str(th.get("face", "happy")); act = th.get("act")
     try:
         body = ch["svg"](face, False, False, act) if act else ch["svg"](face)

@@ -20,8 +20,8 @@ body::after{content:"";position:absolute;inset:0;pointer-events:none;
 .sub{font-size:56px;font-weight:900;color:#fff;background:var(--black);display:inline-block;padding:16px 36px;border-radius:16px;align-self:flex-start;white-space:pre-line;
   line-height:1.25;max-width:66%;box-shadow:0 8px 0 rgba(31,42,68,.3);border:4px solid #fff}
 /* キャラクター置き場（右）。{{CHAR}} に SVG が入る。空のときは丸印「大家」を出す */
-.char{position:absolute;right:36px;bottom:0;width:420px;height:600px;display:flex;align-items:flex-end;justify-content:center;z-index:2;pointer-events:none}
-.char>svg,.char>img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 10px 0 rgba(0,0,0,.25))}
+.char{position:absolute;right:0;bottom:-30px;width:560px;height:640px;display:flex;align-items:flex-end;justify-content:center;z-index:2;pointer-events:none}
+.char>svg,.char>img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(5px 0 0 #fff) drop-shadow(-5px 0 0 #fff) drop-shadow(0 5px 0 #fff) drop-shadow(0 -5px 0 #fff) drop-shadow(0 10px 0 rgba(0,0,0,.25))}  /* 白い縁取りで紺の服が濃い背景に沈まないように */
 .char:empty{align-items:center;justify-content:center;height:340px;bottom:40px}
 .char:empty::before{content:"大家";width:240px;height:240px;border-radius:50%;background:#fff;border:14px solid var(--accent);
   display:flex;align-items:center;justify-content:center;font-size:92px;font-weight:900;color:var(--ink);box-shadow:0 10px 0 rgba(0,0,0,.3)}

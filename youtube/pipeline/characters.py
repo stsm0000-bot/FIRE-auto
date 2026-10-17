@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """
 characters.py ― チャンネル「小規模な大家」の原作キャラクター（SVG）
-  コツさん : 家を背負った亀の大家。コツコツ積み上げる本人役。
-  ぽん太   : 皮算用が得意なたぬきの会社員。視聴者の疑問・驚きを言う役。
+  ユイさん : 解説役。不動産の仕入れと販売をしている大家のお姉さん（こげ茶のボブ・メガネ・紺のジャケット・金の鍵）。
+  ソウタ   : 聞き役。皮算用が得意な新人会社員（明るい茶髪・紺のスーツ・青いネクタイ）。視聴者の疑問・驚きを言う。
+  （旧）コツさん・ぽん太 : 亀とたぬき。v6 までの台本のために残している。
 表情: normal / happy / surprised / doubt / calm / fire   口: open/closed   目: blink
 ポーズ act: stand / walk / point / think / cheer / sit / shock / bow（docs/12 の語彙）
   facing: "right"（既定）/ "left" ― point の指す向き・bow / shock の傾く向き。顔の位置は変えない。
@@ -201,7 +202,188 @@ def ponta(expr="normal", mouth_open=False, blink=False, act="stand", facing="rig
         body = f'<g transform="rotate({lean * sign} 150 300)">{body}</g>'
     return body
 
+# ---------------------------------------------------------------- 人型（ユイさん・ソウタ）
+SKIN = "#FFE3CC"
+SKIN_S = "#F6C6A6"     # 首の影
+CHEEK = "#FF8FA3"
+HAIR_Y = "#3A2621"     # ユイさん: こげ茶のボブ
+HAIR_Y2 = "#6A473B"
+JKT_Y = "#22325A"      # ユイさん: 紺のジャケット
+HAIR_S = "#D9893E"     # ソウタ: 明るい茶髪
+HAIR_S2 = "#F2AE63"
+SUIT_S = "#2A3E73"     # ソウタ: 紺のスーツ
+TIE = "#2F80ED"
+GOLD = "#F2B705"
+FACE_CX, FACE_CY = 150, 116     # 顔の中心（viewBox 300）。scenes.py の確認でも使う
+EYE_L, EYE_R, EYE_Y = 124, 176, 124
+
+
+def _aeye(x, cy, expr, blink, iris, big=1.0, side="l"):
+    """アニメ調の目 1 つ。doubt は左だけ半目にして片目で疑う"""
+    if blink:
+        return f'<path d="M{x-15} {cy} q15 9 30 0" stroke="{INK}" stroke-width="6" fill="none" stroke-linecap="round"/>'
+    if expr == "happy":
+        return f'<path d="M{x-15} {cy+5} q15 -20 30 0" stroke="{INK}" stroke-width="7" fill="none" stroke-linecap="round"/>'
+    if expr == "calm" or (expr == "doubt" and side == "l"):
+        return (f'<path d="M{x-12} {cy} a12 12 0 0 0 24 0 Z" fill="{iris}" stroke="{INK}" stroke-width="3"/>'
+                f'<circle cx="{x}" cy="{cy+5}" r="4" fill="{INK}"/>'
+                f'<path d="M{x-16} {cy} h32" stroke="{INK}" stroke-width="7" stroke-linecap="round"/>')
+    rx, ry = 14 * big, 18 * big
+    if expr == "surprised":
+        rx, ry = 16 * big, 21 * big
+        return (f'<ellipse cx="{x}" cy="{cy}" rx="{rx:.0f}" ry="{ry:.0f}" fill="#fff" stroke="{INK}" stroke-width="4"/>'
+                f'<circle cx="{x}" cy="{cy+1}" r="7" fill="{INK}"/><circle cx="{x+3}" cy="{cy-3}" r="2.5" fill="#fff"/>')
+    out = (f'<ellipse cx="{x}" cy="{cy}" rx="{rx:.0f}" ry="{ry:.0f}" fill="#fff" stroke="{INK}" stroke-width="3"/>'
+           f'<ellipse cx="{x}" cy="{cy+3}" rx="{rx-3:.0f}" ry="{ry-3:.0f}" fill="{iris}"/>'
+           f'<ellipse cx="{x}" cy="{cy+5}" rx="{rx-8:.0f}" ry="{ry-8:.0f}" fill="{INK}"/>'
+           f'<circle cx="{x+5}" cy="{cy-5}" r="5" fill="#fff"/><circle cx="{x-5}" cy="{cy+9}" r="2.5" fill="#fff"/>'
+           f'<path d="M{x-rx-2:.0f} {cy-ry+5:.0f} q{rx+2:.0f} -14 {2*rx+4:.0f} 0" stroke="{INK}" stroke-width="6" fill="none" stroke-linecap="round"/>')
+    if expr == "fire":   # 目に光
+        out += f'<path d="M{x-4} {cy+2} l4 -8 l4 8 l-4 8 Z" fill="#fff" opacity=".9"/>'
+    return out
+
+
+def _abrows(expr, color):
+    l, r, y = EYE_L, EYE_R, EYE_Y - 28
+
+    def ln(d, w=6):
+        return f'<path d="{d}" stroke="{color}" stroke-width="{w}" fill="none" stroke-linecap="round"/>'
+    if expr == "fire":
+        return ln(f"M{l-15} {y-4} L{l+14} {y+6}") + ln(f"M{r+15} {y-4} L{r-14} {y+6}")
+    if expr == "doubt":
+        return ln(f"M{l-15} {y+6} L{l+14} {y+2}") + ln(f"M{r-14} {y-8} q14 -8 28 2")
+    if expr == "surprised":
+        return ln(f"M{l-14} {y-6} q14 -12 28 0") + ln(f"M{r-14} {y-6} q14 -12 28 0")
+    if expr == "calm":
+        return ln(f"M{l-14} {y+2} q14 -6 28 2", 5) + ln(f"M{r-14} {y+4} q14 -8 28 -2", 5)
+    return ln(f"M{l-14} {y} q14 -7 28 0", 5) + ln(f"M{r-14} {y} q14 -7 28 0", 5)
+
+
+def _amouth(expr, open_):
+    cx, cy = FACE_CX, 156
+    return f'<g transform="translate({cx} {cy}) scale(.72) translate({-cx} {-cy})">{_mouth(cx, cy, expr, open_)}</g>'
+
+
+def _harm(sx, sy, ang, length, sleeve, finger=False, cls="", cuff="#fff"):
+    """肩から伸びる腕（袖＋袖口＋手）。ang: 0=右 90=下 -90=上"""
+    inner = (f'<rect x="-6" y="-13" width="{length}" height="26" rx="13" fill="{sleeve}" stroke="{INK}" stroke-width="5"/>'
+             f'<rect x="{length-14}" y="-12" width="9" height="24" rx="3" fill="{cuff}" stroke="{INK}" stroke-width="3"/>'
+             f'<circle cx="{length+5}" cy="0" r="13" fill="{SKIN}" stroke="{INK}" stroke-width="5"/>')
+    if finger:
+        inner += f'<rect x="{length+10}" y="-5" width="26" height="10" rx="5" fill="{SKIN}" stroke="{INK}" stroke-width="4"/>'
+    if cls:
+        inner = f'<g class="{cls}">{inner}</g>'
+    return f'<g transform="translate({sx} {sy}) rotate({ang})">{inner}</g>'
+
+
+def _legs(walk, pants, shoe, skirt=False):
+    """足 2 本。walk のときは leg-a / leg-b（scenes.py の CSS が上下させる）"""
+    def leg(x, cls):
+        top, h = (268, 20) if skirt else (264, 24)
+        g = (f'<rect x="{x-11}" y="{top}" width="22" height="{h}" rx="6" fill="{pants}" stroke="{INK}" stroke-width="5"/>'
+             f'<ellipse cx="{x+3}" cy="291" rx="18" ry="9" fill="{shoe}" stroke="{INK}" stroke-width="5"/>')
+        return f'<g class="{cls}">{g}</g>' if walk else g
+    return leg(128, "leg-a") + leg(172, "leg-b")
+
+
+def _pose_arms(act, L, R, sleeve):
+    """8 ポーズの腕。戻り値 (腕, 頭上の印, 傾き, 頭のずれ)"""
+    over = ""; lean = 0; shift = ""
+    if act == "walk":
+        arms = _harm(*L, 118, 46, sleeve, cls="arm-a") + _harm(*R, 62, 46, sleeve, cls="arm-b")
+    elif act == "point":
+        arms = _harm(*L, 100, 44, sleeve) + _harm(*R, -16, 58, sleeve, finger=True)
+    elif act == "think":
+        arms = _harm(*L, 100, 44, sleeve) + _harm(*R, -128, 44, sleeve)
+        over = _dots(214, 22)
+    elif act == "cheer":
+        arms = _harm(*L, -128, 58, sleeve) + _harm(*R, -52, 58, sleeve)
+    elif act == "sit":
+        arms = _harm(*L, 62, 40, sleeve) + _harm(*R, 118, 40, sleeve)
+    elif act == "shock":
+        arms = _harm(*L, -156, 52, sleeve) + _harm(*R, -24, 52, sleeve)
+        over = _drop(238, 74, .95) + _drop(252, 108, .75)
+        lean = -8
+    elif act == "bow":
+        arms = _harm(*L, 70, 42, sleeve) + _harm(*R, 110, 42, sleeve)
+        lean = 12; shift = "translate(6 14)"
+    else:   # stand
+        arms = _harm(*L, 104, 44, sleeve) + _harm(*R, 76, 44, sleeve)
+    return arms, over, lean, shift
+
+
+def _human(face_inner, hair_back, hair_front, torso, arms, legs, over, lean, shift, facing):
+    """人型の組み立て。facing=left は全体を左右反転（顔の位置は中央のまま）"""
+    head = (f'{hair_back}'
+            f'<ellipse cx="{FACE_CX - 68}" cy="{FACE_CY + 8}" rx="10" ry="14" fill="{SKIN}" stroke="{INK}" stroke-width="5"/>'
+            f'<ellipse cx="{FACE_CX + 68}" cy="{FACE_CY + 8}" rx="10" ry="14" fill="{SKIN}" stroke="{INK}" stroke-width="5"/>'
+            f'<ellipse cx="{FACE_CX}" cy="{FACE_CY}" rx="66" ry="64" fill="{SKIN}" stroke="{INK}" stroke-width="6"/>'
+            f'<ellipse cx="{FACE_CX - 42}" cy="148" rx="13" ry="8" fill="{CHEEK}" opacity=".55"/>'
+            f'<ellipse cx="{FACE_CX + 42}" cy="148" rx="13" ry="8" fill="{CHEEK}" opacity=".55"/>'
+            f'{hair_front}{face_inner}')
+    if shift:
+        head = f'<g transform="{shift}">{head}</g>'
+    body = (f'{legs}<path d="M136 172 h28 v18 h-28 Z" fill="{SKIN_S}" stroke="{INK}" stroke-width="4"/>'
+            f'{torso}{arms}{head}{over}')
+    if lean:
+        body = f'<g transform="rotate({lean} 150 296)">{body}</g>'
+    return _mirror(body, facing)
+
+
+def yui(expr="normal", mouth_open=False, blink=False, act="stand", facing="right") -> str:
+    """ユイさん（大家のお姉さん。こげ茶のボブ・細いメガネ・紺のジャケット・金の鍵）。viewBox 0 0 300 300"""
+    act = act if act in ACTS else "stand"
+    arms, over, lean, shift = _pose_arms(act, (104, 204), (196, 204), JKT_Y)
+    hair_back = (f'<path d="M74 122 C68 52 110 34 150 34 C190 34 232 52 226 122 L230 176 Q212 188 194 176 L196 150 '
+                 f'L104 150 L106 176 Q88 188 70 176 Z" fill="{HAIR_Y}" stroke="{INK}" stroke-width="6" stroke-linejoin="round"/>')
+    hair_front = (f'<path d="M82 106 C80 58 114 40 152 40 C190 40 222 60 220 106 C208 96 200 82 194 68 '
+                  f'C178 84 148 88 118 84 C106 90 94 98 82 106 Z" fill="{HAIR_Y}" stroke="{INK}" stroke-width="6" stroke-linejoin="round"/>'
+                  f'<path d="M118 58 q24 -12 48 -6" stroke="{HAIR_Y2}" stroke-width="7" fill="none" stroke-linecap="round"/>'
+                  f'<path d="M82 108 L78 168 Q86 178 96 168 L96 116 Z" fill="{HAIR_Y}" stroke="{INK}" stroke-width="5" stroke-linejoin="round"/>'
+                  f'<path d="M218 108 L222 168 Q214 178 204 168 L204 116 Z" fill="{HAIR_Y}" stroke="{INK}" stroke-width="5" stroke-linejoin="round"/>')
+    eyes = _aeye(EYE_L, EYE_Y, expr, blink, "#8A5634", side="l") + _aeye(EYE_R, EYE_Y, expr, blink, "#8A5634", side="r")
+    glasses = (f'<rect x="{EYE_L-24}" y="{EYE_Y-20}" width="48" height="40" rx="13" fill="#fff" fill-opacity=".12" stroke="{INK}" stroke-width="4"/>'
+               f'<rect x="{EYE_R-24}" y="{EYE_Y-20}" width="48" height="40" rx="13" fill="#fff" fill-opacity=".12" stroke="{INK}" stroke-width="4"/>'
+               f'<path d="M{EYE_L+24} {EYE_Y-6} Q150 {EYE_Y-13} {EYE_R-24} {EYE_Y-6}" stroke="{INK}" stroke-width="4" fill="none"/>')
+    face = eyes + glasses + _abrows(expr, HAIR_Y) + _amouth(expr, mouth_open)
+    torso = (f'<path d="M100 214 Q100 190 128 186 L172 186 Q200 190 200 214 L204 266 Q150 276 96 266 Z" fill="{JKT_Y}" stroke="{INK}" stroke-width="6" stroke-linejoin="round"/>'
+             f'<path d="M132 187 L150 232 L168 187 Z" fill="#fff" stroke="{INK}" stroke-width="4" stroke-linejoin="round"/>'
+             f'<path d="M128 187 L144 216 L134 224 Z M172 187 L156 216 L166 224 Z" fill="#33477A" stroke="{INK}" stroke-width="4" stroke-linejoin="round"/>'
+             # 鍵のネックレス（大家の印）
+             f'<path d="M134 190 Q150 220 166 190" stroke="{GOLD}" stroke-width="3" fill="none"/>'
+             f'<circle cx="150" cy="221" r="8" fill="none" stroke="{GOLD}" stroke-width="5"/>'
+             f'<path d="M150 229 v17 h7 M150 240 h6" stroke="{GOLD}" stroke-width="5" stroke-linecap="round" fill="none"/>'
+             # スカート
+             f'<path d="M102 258 L198 258 L206 278 Q150 286 94 278 Z" fill="#2B2F3F" stroke="{INK}" stroke-width="5" stroke-linejoin="round"/>')
+    legs = _legs(act == "walk", "#3A3F55", "#6B2E2E", skirt=True)
+    return _human(face, hair_back, hair_front, torso, arms, legs, over, lean, shift, facing)
+
+
+def souta(expr="normal", mouth_open=False, blink=False, act="stand", facing="right") -> str:
+    """ソウタ（新人会社員。明るい茶髪のツンツン短髪・紺のスーツ・青いネクタイ・大きな目）。viewBox 0 0 300 300"""
+    act = act if act in ACTS else "stand"
+    arms, over, lean, shift = _pose_arms(act, (104, 204), (196, 204), SUIT_S)
+    hair_back = (f'<path d="M80 120 C76 72 104 48 150 48 C196 48 224 72 220 120 L212 104 L88 104 Z" '
+                 f'fill="{HAIR_S}" stroke="{INK}" stroke-width="6" stroke-linejoin="round"/>')
+    hair_front = (f'<path d="M80 106 L72 84 L92 88 L88 56 L112 66 L118 30 L140 56 L156 20 L170 54 L194 32 L198 64 L222 54 L214 86 L230 84 '
+                  f'L220 106 C208 94 200 82 196 72 C184 86 160 90 140 84 C128 90 112 88 104 84 C98 94 90 102 80 106 Z" '
+                  f'fill="{HAIR_S}" stroke="{INK}" stroke-width="6" stroke-linejoin="round"/>'
+                  f'<path d="M122 50 l10 18 M158 42 l6 20 M190 52 l-2 16" stroke="{HAIR_S2}" stroke-width="6" stroke-linecap="round"/>')
+    eyes = _aeye(EYE_L, EYE_Y, expr, blink, "#3B6FB6", big=1.12, side="l") + _aeye(EYE_R, EYE_Y, expr, blink, "#3B6FB6", big=1.12, side="r")
+    face = eyes + _abrows(expr, "#7A4A20") + _amouth(expr, mouth_open)
+    torso = (f'<path d="M100 214 Q100 190 128 186 L172 186 Q200 190 200 214 L202 272 L98 272 Z" fill="{SUIT_S}" stroke="{INK}" stroke-width="6" stroke-linejoin="round"/>'
+             f'<path d="M130 187 L150 236 L170 187 Z" fill="#fff" stroke="{INK}" stroke-width="4" stroke-linejoin="round"/>'
+             f'<path d="M150 196 l-9 9 l9 44 l9 -44 Z" fill="{TIE}" stroke="{INK}" stroke-width="4" stroke-linejoin="round"/>'
+             f'<path d="M141 189 h18 l-9 10 Z" fill="{TIE}" stroke="{INK}" stroke-width="3" stroke-linejoin="round"/>'
+             f'<path d="M128 187 L146 224 L134 230 Z M172 187 L154 224 L166 230 Z" fill="#3A5290" stroke="{INK}" stroke-width="4" stroke-linejoin="round"/>')
+    legs = _legs(act == "walk", SUIT_S, "#4A2E1E")
+    return _human(face, hair_back, hair_front, torso, arms, legs, over, lean, shift, facing)
+
+
 CHARACTERS = {
+    "ユイさん": {"svg": yui,   "role": "答", "desc": "不動産の仕入れと販売をしている大家"},
+    "ソウタ":   {"svg": souta, "role": "聞", "desc": "皮算用が得意な新人会社員"},
+    # 旧キャラ（v6 までの台本用）
     "コツさん": {"svg": kotsu, "role": "答", "desc": "家を背負った亀の大家。コツコツ積み上げる本人役"},
     "ぽん太":   {"svg": ponta, "role": "聞", "desc": "皮算用が得意なたぬきの会社員。視聴者の疑問と驚きを言う役"},
 }
