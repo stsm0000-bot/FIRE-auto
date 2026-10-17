@@ -124,9 +124,9 @@ def load_script(path: Path) -> dict:
     doc.setdefault("kind", "long")
     doc.setdefault("speakers", {
         "聞": {"speaker": "ずんだもん", "style": "ノーマル", "name": "ソウタ", "color": "#2F80ED", "char": "ソウタ"},
-        "答": {"speaker": "九州そら", "style": "ノーマル", "name": "ユイさん", "color": "#FF7A1A", "char": "ユイさん",
-               "style_map": {"喜び": "あまあま", "熱血": "ツンツン", "しっとり": "ノーマル", "かなしみ": "ノーマル",
-                             "不機嫌": "ツンツン", "囁き": "ささやき"}},
+        "答": {"speaker": "WhiteCUL", "style": "ノーマル", "name": "ユイさん", "color": "#FF7A1A", "char": "ユイさん",
+               "style_map": {"喜び": "たのしい", "熱血": "ノーマル", "しっとり": "ノーマル", "かなしみ": "かなしい",
+                             "不機嫌": "ノーマル", "囁き": "ノーマル"}},   # 九州そらは話速が約 1.5 倍遅く尺が延びるため WhiteCUL
     })
     for key, sp in doc["speakers"].items():
         sp.setdefault("char", "ユイさん" if key == "答" else "ソウタ")
