@@ -579,10 +579,16 @@ def tts_voicevox(text: str, speaker_id: int, out: Path, speed: float = 1.0, into
     with urllib.request.urlopen(s, timeout=120) as r:
         out.write_bytes(r.read())
 
+def line_style(sp: dict, ln: Line) -> str:
+    """台詞の st を話者のスタイル名にする。speakers の style_map（例 {喜び: あまあま}）で読み替える。st が無ければ話者の style"""
+    if not ln.st:
+        return sp.get("style", "ノーマル")
+    return str((sp.get("style_map") or {}).get(ln.st, ln.st))
+
 def voice_key(doc: dict, ln: Line, mode: str) -> str:
     """音声キャッシュの鍵（台詞・話者・スタイル・話速・抑揚が同じなら同じ）"""
     sp = doc["speakers"][ln.sp]; v = doc["voice"]
-    sig = "|".join(str(x) for x in (mode, ln.text, sp.get("speaker"), sp.get("voicevox_id"), ln.st or sp.get("style"),
+    sig = "|".join(str(x) for x in (mode, ln.text, sp.get("speaker"), sp.get("voicevox_id"), line_style(sp, ln),
                                       ln.speed or v["speed"], ln.intonation or v["intonation"], v["pitch"]))
     return hashlib.md5(sig.encode("utf-8")).hexdigest()[:8]
 
@@ -597,7 +603,7 @@ def tts_line(mode: str, doc: dict, ln: Line, out: Path):
     if "voicevox_id" in sp and not ln.st:
         sid = int(sp["voicevox_id"])
     else:
-        sid = voicevox_style_id(sp.get("speaker", ""), ln.st or sp.get("style", "ノーマル"))
+        sid = voicevox_style_id(sp.get("speaker", ""), line_style(sp, ln))
     v = doc["voice"]
     tts_voicevox(ln.text, sid, out, float(ln.speed or v["speed"]), float(ln.intonation or v["intonation"]), float(v["pitch"]))
 
