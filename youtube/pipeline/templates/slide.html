@@ -24,7 +24,7 @@ body::after{content:"";position:absolute;inset:0;pointer-events:none;background:
 .chap:empty{display:none}
 .body{flex:1;display:flex;align-items:center;justify-content:center;padding:0 var(--pad);margin-bottom:calc(var(--subband) + 58px)}
 .foot{position:absolute;right:var(--pad);bottom:calc(var(--subband) + 12px);font-size:25px;color:var(--mute);letter-spacing:.02em}
-html[data-kind="short"] .foot{bottom:90px;right:auto;left:0;width:100%;box-sizing:border-box;padding:0 64px;font-size:22px;line-height:1.4;text-align:center}
+html[data-kind="short"] .foot{bottom:90px;right:auto;left:0;width:100%;box-sizing:border-box;padding:0 64px;font-size:22px;line-height:1.4;text-align:center;text-wrap:balance}
 html[data-kind="short"] .q{max-width:92%;font-size:32px}
 .off{opacity:var(--off)}
 /* 選択中: オレンジの太枠＋わずかに拡大（transform はアニメが使うので scale を別に使う） */

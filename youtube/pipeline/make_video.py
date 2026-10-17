@@ -401,7 +401,7 @@ html,body{width:{{W}}px;height:{{H}}px;background:transparent;overflow:hidden;fo
 .hl.enter{animation:pop .55s cubic-bezier(.22,.9,.3,1) both}
 @keyframes pop{0%{opacity:0;transform:scale(.5)}55%{opacity:1;transform:scale(1.1)}78%{transform:scale(.96)}100%{opacity:1;transform:none}}
 .foot{position:absolute;right:{{PAD}}px;bottom:{{FOOT}}px;font-size:25px;color:#fff;text-shadow:0 0 6px rgba(0,0,0,.7),0 0 2px rgba(0,0,0,.9);letter-spacing:.02em}
-html[data-kind="short"] .foot{right:auto;left:0;width:100%;box-sizing:border-box;padding:0 64px;font-size:22px;line-height:1.4;text-align:center}
+html[data-kind="short"] .foot{right:auto;left:0;width:100%;box-sizing:border-box;padding:0 64px;font-size:22px;line-height:1.4;text-align:center;text-wrap:balance}
 </style></head><body data-kind="{{KIND}}"><div class="q">問い：{{QUESTION}}</div>{{HL}}<div class="foot">{{DISCLAIMER}}</div>
 <script>window.__seek=function(ms){document.getAnimations().forEach(a=>{a.pause();a.currentTime=ms;});};</script></body></html>"""
 
