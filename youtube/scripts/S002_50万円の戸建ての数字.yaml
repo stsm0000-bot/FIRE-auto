@@ -82,6 +82,7 @@ scenes:
       - {sp: 答, text: "楽ではない。ただ、大金がないと始められない、は違う。", step: 2, st: "熱血", face: fire}
   - id: ending
     layout: ending
+    label: "続きは note で"
     heading: "安い家の探し方・買い方は\nnote に"
     sub: "業者から紹介してもらうやり方も"
     cta: "note は概要欄から ▶"

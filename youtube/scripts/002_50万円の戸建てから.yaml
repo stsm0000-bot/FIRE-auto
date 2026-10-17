@@ -110,7 +110,7 @@ scenes:
   - id: intro
     layout: title
     cast: true
-    heading: "不動産の仕入れと販売を仕事にしている\n大家のユイです"
+    heading: "不動産の仕入れと販売をしている\n大家のユイです"
     sub: "数字は説明のためのモデルケース"
     lines:
       - {sp: 答, text: "不動産の仕入れと販売を仕事にしている大家、ユイです。", st: "ノーマル"}
@@ -639,6 +639,7 @@ scenes:
 
   - id: ending
     layout: ending
+    label: "続きは note で"
     heading: "安い家の探し方・買い方・\n紹介してもらうやり方は note に"
     sub: "買う前の確認12項目のチェック表と、見積りの内訳表も"
     cta: "note は概要欄から ▶"

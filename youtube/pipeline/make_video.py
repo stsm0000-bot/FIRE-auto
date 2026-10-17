@@ -299,7 +299,7 @@ def render_body(doc: dict, sc: Scene, step: int, mark: int | None, anim: bool, p
             h.append(f'<div class="cap{" on" if step >= 2 else " off"}{ent(step >= 2 and prev_step < 2)}">{esc(d["caption"])}</div>')
         h.append('</div>')
     elif L == "ending":
-        h.append(f'<div class="ending"><div class="eh{ent(True)}">今日の一歩</div>'
+        h.append(f'<div class="ending"><div class="eh{ent(True)}">{esc(d.get("label", "今日の一歩"))}</div>'
                  f'<div class="eb{ent(True)}" style="--i:1">{esc(d.get("heading",""))}</div>')
         if d.get("sub"):
             h.append(f'<div class="es{ent(True)}" style="--i:3">{esc(d["sub"])}</div>')
@@ -736,7 +736,8 @@ def build(script: Path, out_dir: Path, tts_mode: str, bgm: Path | None, bgm_db: 
             chapter_idx = sc.chapter_no
             chapters.append((t, f"{chapter_idx}. " + sc.data.get("heading", "")))
         elif sc.layout == "ending":
-            chapters.append((t, "今日の一歩"))
+            doc["_ending_label"] = sc.data.get("label", "今日の一歩")
+            chapters.append((t, doc["_ending_label"]))
         if sc.layout == "clip":
             src = sc.data.get("file")
             p = (doc["_script_dir"] / src) if src and not Path(src).is_absolute() else (Path(src) if src else None)
@@ -1169,7 +1170,7 @@ def write_publish(doc: dict, chapters: list[tuple[float, str]], total: float, ou
           f"- タグ: {', '.join(tags)}"]
     if doc["kind"] == "long":
         if total >= 480:
-            cands = [(t, h) for t, h in chapters if 120 <= t <= total - 90 and not h.startswith("今日の一歩")]
+            cands = [(t, h) for t, h in chapters if 120 <= t <= total - 90 and h != doc.get("_ending_label")]
             md.append("- ミッドロール広告（手動で置く場所。章扉の直前＝話の切れ目）: " + ("、".join(fmt_ts(t) for t, _ in cands) if cands else "候補なし"))
         else:
             md.append(f"- ミッドロール広告: 尺が 8 分未満（{fmt_ts(total)}）なので入らない。台本を足すか、そのまま公開")
