@@ -251,22 +251,32 @@ scenes:
       - {who: ぽん太, at: right, act: stand, face: surprised}
     props:
       - {kind: stamp, text: "契約", at: center, step: 1}
-      - {kind: money, text: "50万円", at: center, step: 2}
-      - {kind: price, text: "諸費用 約40万円", at: right, step: 3}
+      - {kind: money, text: "50万円", x: 37, x_fixed: true, step: 2}
+      - {kind: price, text: "諸費用 約40万円", x: 50, x_fixed: true, step: 3}
       - {kind: sweat, who: ぽん太, step: 4}
-      - {kind: headline, text: "800万円以下の家：仲介手数料の上限は税込33万円", step: 5}
-      - {kind: bubble, text: "買値→直し→家賃", who: コツさん, step: 6}
-    steps: 6
+    steps: 4
     lines:
       - {sp: 答, text: "この大家さんは、買付を入れて、契約。", step: 1, st: "喜び", face: happy}
       - {sp: 聞, text: "ほんとに買うんですね……。", step: 2, st: "あまあま", face: surprised}
       - {sp: 答, text: "買値50万円に、仲介手数料、登記、保険。諸費用で、約40万円。", step: 3, st: "ノーマル"}
       - {sp: 聞, text: "えっ、買値と同じくらい！？", step: 4, st: "あまあま", face: surprised}
-      - {sp: 答, text: "800万円以下の家や土地は、仲介手数料の上限が、税込33万円。", step: 5, st: "ノーマル"}
-      - {sp: 答, text: "2024年7月からの決まりです。上限なので、もっと安いこともある。", step: 5, st: "ノーマル"}
-      - {sp: 答, text: "媒介契約の前に説明を受けて、書面で合意する。この例は、上限で計算します。", step: 5, st: "ノーマル", face: calm}
-      - {sp: 答, text: "数字は、買値、直し、家賃の順。家賃から見ると、皮算用になる。", step: 6, st: "ノーマル", face: calm}
-      - {sp: 答, text: "次は、直し。", step: 6, st: "ノーマル", face: happy, pause: 0.5}
+
+  # ---- 仲介手数料の決まり（2024 年 7 月の改正。本人の指摘で足した。docs/15 §6.1）
+  - id: c1_fee
+    layout: list
+    heading: "仲介手数料（2024年7月から）"
+    items:
+      - {text: "800万円以下の家・土地は上限 税込33万円", note: "売主・買主それぞれ。売買・交換のみ"}
+      - {text: "上限であって、定額ではない", note: "もっと安いこともある"}
+      - {text: "媒介契約の前に、説明と書面の合意", note: "この例は上限で計算"}
+    lines:
+      - {sp: 答, text: "800万円以下の家や土地は、仲介手数料の上限が、税込33万円。", step: 1, mark: 1, st: "ノーマル"}
+      - {sp: 答, text: "2024年7月からの決まりです。", mark: 1, st: "ノーマル"}
+      - {sp: 答, text: "上限なので、決まった額ではない。もっと安いこともある。", step: 2, mark: 2, st: "ノーマル"}
+      - {sp: 答, text: "媒介契約の前に説明を受けて、書面で合意する。この例は、上限で計算します。", step: 3, mark: 3, st: "ノーマル", face: calm}
+      - {sp: 聞, text: "安い家ほど、手数料の割合が重いんですね。", st: "ノーマル", face: doubt}
+      - {sp: 答, text: "そう。数字は、買値、直し、家賃の順。家賃から見ると、皮算用になる。", st: "ノーマル", face: calm}
+      - {sp: 答, text: "次は、直し。", st: "ノーマル", face: happy, pause: 0.5}
 
   # ================================================================
   # 第2章: 直して、貸す（山②＝見積りが膨らむ）
@@ -335,10 +345,10 @@ scenes:
     chars:
       - {who: コツさん, at: center, act: shock, face: surprised}
     props:
-      - {kind: price, text: "150万円", at: left, step: 1}
-      - {kind: cross, at: left, step: 2}
-      - {kind: price, text: "210万円", at: right, step: 2}
-      - {kind: arrow, text: "＋60万円", dir: up, at: center, step: 3}
+      - {kind: price, text: "150万円", x: 18, x_fixed: true, step: 1}
+      - {kind: cross, x: 18, x_fixed: true, step: 2}
+      - {kind: price, text: "210万円", x: 82, x_fixed: true, step: 2}
+      - {kind: arrow, text: "＋60万円", dir: up, x: 64, x_fixed: true, step: 3}
     steps: 3
     lines:
       - {sp: 答, text: "見積りは、150万円のはずだった。", step: 1, st: "しっとり", face: calm}
