@@ -68,6 +68,11 @@ def clean(text) -> str:
     """★ を消し、前後の空白を落とす（★ は本人確認用の印。投稿文には出さない）。"""
     return re.sub(r"\s*★\s*", "", str(text or "")).strip()
 
+
+def cell(x) -> str:
+    """表のセル用: 改行と | を崩れない形に"""
+    return clean(x).replace("\n", "／").replace("|", "｜")
+
 def x_weight(text: str) -> int:
     """X の重み付き文字数。URL（置換印も）は 23、全角（CJK・絵文字など）は 2、半角は 1。"""
     total = 0
@@ -168,7 +173,7 @@ def scene_block(scene: dict, chapter: str, answerer: str) -> dict | None:
         if items and isinstance(items[0], dict) and any("value" in it for it in items):
             md += ["| 項目 | 金額 |", "|---|---|"]
             for it in items:
-                md.append(f"| {clean(it.get('op', ''))} {clean(it.get('text', ''))} | {clean(it.get('value', ''))} |")
+                md.append(f"| {cell(it.get('op', ''))} {cell(it.get('text', ''))} | {cell(it.get('value', ''))} |")
         else:
             md += [f"- {_item_text(it)}" for it in items]
     elif lay == "list":
@@ -176,7 +181,7 @@ def scene_block(scene: dict, chapter: str, answerer: str) -> dict | None:
                if isinstance(it, dict) else f"- {clean(it)}" for it in scene.get("items", [])]
     elif lay == "bar":
         md += ["| | 値 |", "|---|---|"]
-        md += [f"| {clean(r.get('label', ''))} | {clean(r.get('note', r.get('value', '')))} |" for r in scene.get("rows", [])]
+        md += [f"| {cell(r.get('label', ''))} | {cell(r.get('note', r.get('value', '')))} |" for r in scene.get("rows", [])]
     elif lay == "compare":
         for side in ("left", "right"):
             s = scene.get(side, {})
@@ -184,7 +189,7 @@ def scene_block(scene: dict, chapter: str, answerer: str) -> dict | None:
                 md.append(f"- **{clean(s.get('title', ''))}**: " + "、".join(clean(x) for x in s.get("items", [])))
     elif lay == "timeline":
         md += ["| 時期 | できごと | 補足 |", "|---|---|---|"]
-        md += [f"| {clean(it.get('when', ''))} | {clean(it.get('text', ''))} | {clean(it.get('note', ''))} |" for it in scene.get("items", [])]
+        md += [f"| {cell(it.get('when', ''))} | {cell(it.get('text', ''))} | {cell(it.get('note', ''))} |" for it in scene.get("items", [])]
     elif lay == "portfolio":
         n, rent = int(scene.get("count", 0) or 0), float(scene.get("rent", 0) or 0)
         label = clean(scene.get("label", "戸建て"))
@@ -457,8 +462,11 @@ def checklist(doc: dict, files: list[str], warnings: list[str], has_sns: bool, o
            "", "## 3 日後（火）",
            "- [ ] x_single_3.txt、threads_2.txt を投稿。ショート 2〜3 は月・水" if has_sns else "- [ ] ショート 2〜3 は月・水",
            "- [ ] コミュニティ投稿でクイズの答えと「よくある質問」への返答（docs/14 §5）",
-           "- [ ] 48 時間の数字を docs/14 §7 の表に記録",
-           "", "## 検査の結果"]
+           "- [ ] 48 時間の数字を docs/14 §7 の表に記録"]
+    extra = sorted((f for f in files if f.startswith("x_single_") and int(f[9:-4]) > 3), key=lambda f: int(f[9:-4]))
+    if extra:   # 4 本目以降の単発は、5 日後から 1 日 1 本
+        md += ["", "## 5 日後（木）から", f"- [ ] {'、'.join(extra)} を 1 日 1 本ずつ投稿"]
+    md += ["", "## 検査の結果"]
     md += [f"- 警告: {w}" for w in warnings] or ["- 警告なし"]
     return "\n".join(md) + "\n"
 
