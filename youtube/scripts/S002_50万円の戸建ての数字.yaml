@@ -54,7 +54,7 @@ scenes:
       - {text: "総額", value: "300万円", op: "＝", sum: true}
     lines:
       - {sp: 答, text: "モデルケースで計算。買値50万円に、直し210万円。", step: 2, mark: 2}
-      - {sp: 答, text: "仲介手数料などの諸費用、40万円で、総額300万円。", step: 4, mark: 4, st: "喜び"}
+      - {sp: 答, text: "諸費用40万円で、総額300万円。", step: 4, mark: 4, st: "喜び"}
   - id: rent
     layout: flow
     heading: "1年の家賃と手残り"
@@ -64,7 +64,7 @@ scenes:
       - {text: "手残り", value: "約60万円", op: "＝", sum: true}
     lines:
       - {sp: 答, text: "家賃は月7万円。1年で84万円。", step: 1, mark: 1, st: "喜び"}
-      - {sp: 答, text: "固定資産税、管理費、修繕の積み立て、空室で、諸経費を約24万円引く。", step: 2, mark: 2}
+      - {sp: 答, text: "管理費などの諸経費、約24万円を引く。", step: 2, mark: 2}
       - {sp: 答, text: "手残り、約60万円。", step: 3, mark: 3, st: "喜び", pause: 0.5}
       - {sp: 聞, text: "300万円かけて、約60万円。約5年で戻る計算。", mark: 3, st: "ノーマル", face: calm}
   - id: bankbook
