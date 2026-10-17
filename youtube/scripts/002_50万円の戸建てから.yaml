@@ -1,15 +1,21 @@
-# 長尺 ― 実例シリーズ「50万円の戸建てから、家賃収入を積み上げる」物語版 v6（モデルケース版）
-# 語り手: 答＝コツさん（不動産の仕入れと販売を仕事にしている大家キャラ。「こういうやり方もある」というモデルケースを案内する役）。
-#         聞＝ぽん太（皮算用が得意な会社員・視聴者役）。
+# 長尺 ― 実例シリーズ「50万円の戸建てから、家賃収入を積み上げる」物語版 v7（モデルケース版・新キャラ）
+#
+# ■ v7 の変更（2026-10-17 本人の指示）
+#   - キャラを人型のオリジナル 2 人に: 解説＝ユイさん（大家のお姉さん。声 九州そら）、聞き役＝ソウタ（新人会社員。声 ずんだもん）
+#   - 管理会社の管理費（家賃の 3〜5.5％）を経費に入れる。細かく出さず「諸経費 約24万円」「手残り 約60万円」と丸める
+#   - ポータルサイトで探そう、地元の 100 万円以下の家をコメントで、は削除。代わりに「探し方・買い方・業者から紹介してもらうやり方は note に」へ誘導
+#   - 次回予告は「再建築不可の家は、買っていいのか」（探し方は note 側の役目）
+# 語り手: 答＝ユイさん（不動産の仕入れと販売を仕事にしている大家キャラ。「こういうやり方もある」というモデルケースを案内する役）。
+#         聞＝ソウタ（皮算用が得意な会社員・視聴者役）。
 #
 # ■ v6 の狙い（v5 から。本人の指示: 戸建てを 1 戸ずつ積み上げる投資は本人の体験ではない）
 #   - 物件・数字・失敗（見積りが膨らむ／5 千円欲張って空室）は全部「モデルケース（説明のための例）」として語る。
-#     コツさんが当事者として「買った」「私の家」「私が損した」と言う台詞は無くす。
+#     ユイさんが当事者として「買った」「私の家」「私が損した」と言う台詞は無くす。
 #   - 場面の入り口で 1 回だけ「ここからはモデルケース」と言い（house_meet の最後）、以降の主語は「この大家さん」「この例では」。
 #     毎台詞に「例えば」を付けない。出来事は現在形・仮定（「〜する」「〜とします」「よくあるのは〜」）で語る。
 #   - 冒頭の数字のフックは残す（0〜3 秒に「買値50万円・家賃7万円」）。所有を示さない言い方にし、
 #     画面の headline に 0 秒から「モデルケース」、台詞では hook2 の頭（約 12 秒）で「数字はモデルケース」と言う。
-#   - 自己紹介は「不動産の仕入れと販売を仕事にしている大家、コツさん」。戸建てを買っているとは言わない。
+#   - 自己紹介は「不動産の仕入れと販売を仕事にしている大家、ユイさん」。戸建てを買っているとは言わない。
 #   - オープンループは「最後に、この例でいちばん高くついた失敗も。ヒントは5千円の欲」。締めの quote は「この例から分かること」。
 #   - 写真 2 枚はイメージ写真（caption に「イメージ写真」と出す）。
 #   - 構成（山 4 つ・34 場面・scene と図解の交互・note への送客 2 か所・コメントの問い 1 つ・ending 20 秒以上）は v5 のまま。
@@ -27,15 +33,16 @@
 #       上限であって定額ではない（媒介契約の前に説明を受け、書面で合意）。この例は上限で計算。登記・取得税・保険の 7 万円が妥当か
 #   ★3' 融資: 築 50 年・再建築不可は融資が付きにくい、という前提（この例は現金 300 万円）
 #   ★4 家賃: 戸建て 7 万円が場所に対して妥当か。相場 7 万円を 7 万 5 千円で募集 → 4 か月空室 → 7 万円で翌週に決まる、が例としてありうるか
-#   ★5 税・経費: 固定資産税 年 3 万円・修繕の積み立て 年 10 万円・空室 1 か月ぶん 7 万円 → 手残り 64 万円。
-#       管理会社の管理料（家賃の 5％前後＝年 4 万円程度）と所得税を入れていない。入れるなら c3_cost・c3_rent・年表を直す
+#   ★5 諸経費: 固定資産税 約 3 万円・管理費 約 4 万円（家賃の 3〜5.5％）・修繕の積み立て 約 10 万円・空室 1 か月ぶん 約 7 万円
+#       ＝ 約 24 万円 → 手残り 約 60 万円（約 20％・約 5 年で戻る）。所得税は入れていない
 #   ★6 空室: 工事 4 か月・空室 4 か月・買ってから鍵を渡すまで 8 か月。年 1 か月の空室見込みが戸建てとして妥当か
 #   ★7 年表（モデルケースの計算）: 貯金 300 万円から 1 戸目（総額 300 万円）。2 戸目からは買う前に屋根裏を見て 1 戸 240 万円（買値 50＋直し 150＋諸費用 40）。
-#       手残り（1 戸 年 64 万円）＋給料から年 100 万円の貯金で、3 年目 3 戸・5 年目 5 戸・8 年目 12 戸
-#       （2 年目末 284 万 → 2 戸目、3 年目末 272 万 → 3 戸目、4 年目末 324 万 → 4 戸目、5 年目末 440 万 → 5 戸目、
-#        6 年目末 620 万 → 2 戸、7 年目末 688 万 → 2 戸、8 年目末 884 万 → 3 戸で 12 戸。この式で閉じる）
-#   ★8 管理: 管理会社に任せ、大家がやるのは月 1 回通帳を見ること（一般的な任せ方として）
-#   ★9 note の具体物: 「買う前の確認 12 項目のチェック表」「見積りの内訳表」を note 側に実際に置く
+#       手残り（1 戸 年 約 60 万円）＋給料から年 100 万円の貯金で、3 年目 3 戸・5 年目 5 戸・8 年目 12 戸
+#       （1 年目は 4 か月だけ家賃が入り＋20 万。2 年目末 280 万 → 2 戸目、3 年目末 260 万 → 3 戸目、4 年目末 300 万 → 4 戸目、
+#        5 年目末 400 万 → 5 戸目、6 年目末 560 万 → 2 戸、7 年目末 600 万 → 2 戸、8 年目末 760 万 → 3 戸で 12 戸。この式で閉じる）
+#   ★8 管理: 管理会社に任せ（管理費は家賃の 3〜5.5％が目安）、大家がやるのは月 1 回通帳を見ること（一般的な任せ方として）
+#   ★9 note の具体物: 「物件の探し方・買い方・業者から紹介してもらうやり方」（本人の note に既にある）。
+#       「買う前の確認12項目のチェック表」「見積りの内訳表」は note 側に実際に置く
 #   ★10 写真 2 枚: scripts/photos/room_before.jpg（床・水回り）, scripts/photos/room_after.jpg。イメージ写真として使う。外観・表札・窓の外は写さない
 #
 id: "002"
@@ -51,8 +58,9 @@ publish:
   lead: "買値50万円・築50年の戸建てを直して、家賃7万円で貸す。そんなやり方を、モデルケースの数字で追います。直しの見積りが60万円膨らむ失敗、家賃を5千円欲張って4か月空室になる失敗、12戸まで積み上げる年表まで。数字は説明のための例です。"
   tags: [不動産投資, 大家, ボロ戸建て, 戸建て投資, 小規模大家, 家賃収入, 築古戸建て, 利回り, 会社員]
 speakers:
-  聞: {speaker: "ずんだもん", style: "ノーマル", name: "ぽん太", color: "#2F80ED", char: "ぽん太"}
-  答: {speaker: "青山龍星", style: "ノーマル", name: "コツさん", color: "#FF7A1A", char: "コツさん"}
+  聞: {speaker: "ずんだもん", style: "ノーマル", name: "ソウタ", color: "#2F80ED", char: "ソウタ"}
+  答: {speaker: "九州そら", style: "ノーマル", name: "ユイさん", color: "#FF7A1A", char: "ユイさん",
+       style_map: {喜び: あまあま, 熱血: ツンツン, しっとり: ノーマル, かなしみ: ノーマル, 不機嫌: ツンツン, 囁き: ささやき}}
 voice: {speed: 1.1, intonation: 1.3}
 
 scenes:
@@ -65,13 +73,13 @@ scenes:
     time: day
     camera: in
     chars:
-      - {who: ぽん太, at: left, act: stand, face: normal}
-      - {who: コツさん, at: right, act: point, face: normal}
+      - {who: ソウタ, at: left, act: stand, face: normal}
+      - {who: ユイさん, at: right, act: point, face: normal}
     props:
       - {kind: headline, text: "モデルケース：家賃7万円の家、買値50万円", step: 1}
       - {kind: price, text: "50万円", at: center, step: 1}
       - {kind: price, text: "直したら 300万円", at: center, step: 2}
-      - {kind: exclaim, who: ぽん太, step: 3}
+      - {kind: exclaim, who: ソウタ, step: 3}
     steps: 3
     lines:
       - {sp: 答, text: "買値50万円の家を、家賃7万円で貸す。そんなやり方があります。", step: 1, st: "喜び", face: happy}
@@ -85,30 +93,30 @@ scenes:
     time: day
     camera: pan_right
     chars:
-      - {who: ぽん太, at: left, act: stand, face: surprised}
-      - {who: コツさん, at: right, act: point, face: normal}
+      - {who: ソウタ, at: left, act: stand, face: surprised}
+      - {who: ユイさん, at: right, act: point, face: normal}
     props:
-      - {kind: bubble, text: "失敗も2つ込み", who: コツさん, step: 1}
+      - {kind: bubble, text: "失敗も2つ込み", who: ユイさん, step: 1}
       - {kind: headline, text: "見終わると：買値・直し・家賃で家を見る目", step: 1}
       - {kind: sign, text: "最後に：いちばん高くついた失敗", at: center, step: 2}
-      - {kind: question, who: ぽん太, step: 2}
+      - {kind: question, who: ソウタ, step: 2}
     steps: 2
     lines:
       - {sp: 答, text: "数字は、説明のためのモデルケース。ただし、失敗も2つ込み。", step: 1, st: "ノーマル"}
       - {sp: 答, text: "見終わると、買値、直し、家賃で、家を見る目がつく。", step: 1, st: "ノーマル"}
       - {sp: 答, text: "最後に、この例でいちばん高くついた失敗も。ヒントは、5千円の欲。", step: 2, st: "囁き", face: calm, pause: 0.5}
 
-  # ---- 自己紹介（コツさんの名乗り 1 台詞・固定文。ぽん太は night で名乗る）
+  # ---- 自己紹介（ユイさんの名乗り 1 台詞・固定文。ソウタは night で名乗る）
   - id: intro
     layout: title
     cast: true
-    heading: "不動産の仕入れと販売を仕事にしている\n大家のコツさんです"
+    heading: "不動産の仕入れと販売を仕事にしている\n大家のユイです"
     sub: "数字は説明のためのモデルケース"
     lines:
-      - {sp: 答, text: "不動産の仕入れと販売を仕事にしている大家、コツさんです。", st: "ノーマル"}
+      - {sp: 答, text: "不動産の仕入れと販売を仕事にしている大家、ユイです。", st: "ノーマル"}
 
   # ================================================================
-  # 物語の入口: ぽん太の夜 → 週末の散歩 → コツさんに出会う
+  # 物語の入口: ソウタの夜 → 週末の散歩 → ユイさんに出会う
   # ================================================================
   - id: night
     layout: scene
@@ -116,14 +124,14 @@ scenes:
     time: night
     camera: pan_left
     chars:
-      - {who: ぽん太, at: center, act: walk, face: calm}
+      - {who: ソウタ, at: center, act: walk, face: calm}
     props:
       - {kind: headline, text: "ある平日、23時", step: 1}
       - {kind: price, text: "家賃 8万円", at: right, step: 2}
-      - {kind: question, who: ぽん太, step: 2}
+      - {kind: question, who: ソウタ, step: 2}
     steps: 2
     lines:
-      - {sp: 聞, text: "会社員のぽん太、今日も終電。", step: 1, st: "ささやき", face: calm, speed: 0.95}
+      - {sp: 聞, text: "新人会社員のソウタ、今日も終電。", step: 1, st: "ささやき", face: calm, speed: 0.95}
       - {sp: 聞, text: "家賃8万円を、払う側。もらう側には、なれないのかな。", step: 2, st: "ノーマル", face: doubt, pause: 0.6}
 
   - id: street
@@ -133,11 +141,11 @@ scenes:
     weather: sun
     camera: pan_right
     chars:
-      - {who: ぽん太, at: offleft, act: walk, face: normal}
-      - {who: コツさん, at: right, act: think, face: calm}
+      - {who: ソウタ, at: offleft, act: walk, face: normal}
+      - {who: ユイさん, at: right, act: think, face: calm}
     props:
       - {kind: headline, text: "週末の昼、散歩の途中", step: 1}
-      - {kind: question, who: ぽん太, step: 1}
+      - {kind: question, who: ソウタ, step: 1}
     steps: 1
     lines:
       - {sp: 聞, text: "週末、散歩に出たら……ボロい家の前で、ずっと何か見てる人。", step: 1, st: "ヒソヒソ", face: doubt}
@@ -149,16 +157,16 @@ scenes:
     time: day
     camera: in
     chars:
-      - {who: ぽん太, at: left, act: stand, face: normal}
-      - {who: コツさん, at: right, act: point, face: calm}
+      - {who: ソウタ, at: left, act: stand, face: normal}
+      - {who: ユイさん, at: right, act: point, face: calm}
     props:
       - {kind: sign, text: "売家", at: center, step: 1}
-      - {kind: bubble, text: "買って貸す人も", who: コツさん, step: 2}
-      - {kind: sweat, who: ぽん太, step: 3}
+      - {kind: bubble, text: "買って貸す人も", who: ユイさん, step: 2}
+      - {kind: sweat, who: ソウタ, step: 3}
       - {kind: price, text: "500万円？", at: left, step: 4}
       - {kind: cross, at: left, step: 5}
       - {kind: price, text: "50万円", at: center, step: 5}
-      - {kind: exclaim, who: ぽん太, step: 6}
+      - {kind: exclaim, who: ソウタ, step: 6}
       - {kind: headline, text: "ここからはモデルケース", step: 7}
     steps: 7
     lines:
@@ -186,12 +194,12 @@ scenes:
     time: day
     camera: in
     chars:
-      - {who: ぽん太, at: left, act: stand, face: doubt}
-      - {who: コツさん, at: right, act: point, face: normal}
+      - {who: ソウタ, at: left, act: stand, face: doubt}
+      - {who: ユイさん, at: right, act: point, face: normal}
     props:
       - {kind: sign, text: "築50年", at: left, step: 1}
       - {kind: sign, text: "再建築不可", at: center, step: 2}
-      - {kind: sweat, who: ぽん太, step: 3}
+      - {kind: sweat, who: ソウタ, step: 3}
       - {kind: sign, text: "相続", at: right, step: 4}
       - {kind: arrow, text: "値段が落ちる", dir: down, at: center, step: 5}
     steps: 5
@@ -216,6 +224,8 @@ scenes:
       - {sp: 答, text: "郊外なら、もっと出る。駅から遠い、バスの便の家。", step: 2, mark: 2, st: "ノーマル"}
       - {sp: 聞, text: "でも、そんな家を借りる人、本当にいますか？", st: "ツンツン", face: doubt}
       - {sp: 答, text: "います。月7万円で庭つきの戸建てに住みたい人は、思うより多い。", step: 3, mark: 3, st: "熱血", face: fire}
+      - {sp: 聞, text: "で、こういう家って、どうやって見つけるんですか？", mark: 3, st: "ノーマル", face: doubt}
+      - {sp: 答, text: "探し方と買い方、業者さんから紹介してもらうやり方は、概要欄のnoteにまとめています。", mark: 3, st: "ノーマル", face: happy}
 
   # ---- 内見（イメージ写真 1 枚目）→ クイズ
   - id: room_old
@@ -223,15 +233,15 @@ scenes:
     bg: room_old
     camera: in
     chars:
-      - {who: ぽん太, at: left, act: shock, face: surprised}
-      - {who: コツさん, at: right, act: point, face: calm}
+      - {who: ソウタ, at: left, act: shock, face: surprised}
+      - {who: ユイさん, at: right, act: point, face: calm}
     props:
       - {kind: photo, image: photos/room_before.jpg, caption: "イメージ写真：ボロ家の室内", x: 50, step: 1}
-      - {kind: sweat, who: ぽん太, step: 2}
-      - {kind: question, who: コツさん, step: 3}
-      - {kind: bubble, text: "直しも50万円？", who: ぽん太, step: 4}
+      - {kind: sweat, who: ソウタ, step: 2}
+      - {kind: question, who: ユイさん, step: 3}
+      - {kind: bubble, text: "直しも50万円？", who: ソウタ, step: 4}
       - {kind: stamp, text: "150万円", x: 50, step: 5}
-      - {kind: exclaim, who: ぽん太, step: 6}
+      - {kind: exclaim, who: ソウタ, step: 6}
     steps: 6
     lines:
       - {sp: 答, text: "中は、たとえばこう。床が傾いて、水回りはそのままでは使えない。", step: 1, st: "しっとり", face: calm}
@@ -247,13 +257,13 @@ scenes:
     bg: office
     camera: still
     chars:
-      - {who: コツさん, at: left, act: sit, face: normal}
-      - {who: ぽん太, at: right, act: stand, face: surprised}
+      - {who: ユイさん, at: left, act: sit, face: normal}
+      - {who: ソウタ, at: right, act: stand, face: surprised}
     props:
       - {kind: stamp, text: "契約", at: center, step: 1}
       - {kind: money, text: "50万円", x: 37, x_fixed: true, step: 2}
       - {kind: price, text: "諸費用 約40万円", x: 50, x_fixed: true, step: 3}
-      - {kind: sweat, who: ぽん太, step: 4}
+      - {kind: sweat, who: ソウタ, step: 4}
     steps: 4
     lines:
       - {sp: 答, text: "この大家さんは、買付を入れて、契約。", step: 1, st: "喜び", face: happy}
@@ -287,19 +297,19 @@ scenes:
     lines:
       - {sp: 答, text: "直して、貸す。ここからが本体です。", st: "ノーマル"}
 
-  # ---- ぽん太の皮算用（夜の机）: 総額 240 万円まで
+  # ---- ソウタの皮算用（夜の机）: 総額 240 万円まで
   - id: desk
     layout: scene
     bg: desk
     time: night
     camera: in
     chars:
-      - {who: ぽん太, at: left, act: sit, face: happy}
-      - {who: コツさん, at: right, act: stand, face: calm}
+      - {who: ソウタ, at: left, act: sit, face: happy}
+      - {who: ユイさん, at: right, act: stand, face: calm}
     props:
       - {kind: counter, value: 240, unit: "万円", label: "皮算用の総額", at: center, step: 1}
-      - {kind: bubble, text: "年84万円！", who: ぽん太, step: 2}
-      - {kind: star, who: ぽん太, step: 2}
+      - {kind: bubble, text: "年84万円！", who: ソウタ, step: 2}
+      - {kind: star, who: ソウタ, step: 2}
     steps: 2
     lines:
       - {sp: 聞, text: "計算しました。50足す150足す40で、総額240万円。", step: 1, st: "あまあま", face: happy}
@@ -308,7 +318,7 @@ scenes:
   # ---- 皮算用の続き: 表面の利回り 35％ を大きな数字で
   - id: c2_counter
     layout: counter
-    heading: "ぽん太の皮算用：表面の利回り"
+    heading: "ソウタの皮算用：表面の利回り"
     value: 35
     unit: "％"
     sub: "年84万円 ÷ 総額240万円"
@@ -324,12 +334,12 @@ scenes:
     bg: site
     camera: in
     chars:
-      - {who: コツさん, at: left, act: stand, face: calm}
-      - {who: ぽん太, at: right, act: stand, face: normal}
+      - {who: ユイさん, at: left, act: stand, face: calm}
+      - {who: ソウタ, at: right, act: stand, face: normal}
     props:
       - {kind: headline, text: "工事、1週間目", step: 1}
-      - {kind: question, who: コツさん, step: 2}
-      - {kind: sweat, who: ぽん太, step: 3}
+      - {kind: question, who: ユイさん, step: 2}
+      - {kind: sweat, who: ソウタ, step: 3}
       - {kind: sign, text: "屋根裏に雨漏り", at: center, step: 4}
     steps: 4
     lines:
@@ -343,7 +353,7 @@ scenes:
     bg: site
     camera: shake
     chars:
-      - {who: コツさん, at: center, act: shock, face: surprised}
+      - {who: ユイさん, at: center, act: shock, face: surprised}
     props:
       - {kind: price, text: "150万円", x: 18, x_fixed: true, step: 1}
       - {kind: cross, x: 18, x_fixed: true, step: 2}
@@ -374,13 +384,13 @@ scenes:
     bg: bank
     camera: still
     chars:
-      - {who: ぽん太, at: left, act: stand, face: doubt}
-      - {who: コツさん, at: right, act: stand, face: calm}
+      - {who: ソウタ, at: left, act: stand, face: doubt}
+      - {who: ユイさん, at: right, act: stand, face: calm}
     props:
       - {kind: headline, text: "足りない60万円、どうする", step: 1}
       - {kind: cross, at: center, step: 2}
-      - {kind: sweat, who: ぽん太, step: 3}
-      - {kind: bubble, text: "貯金から", who: コツさん, step: 4}
+      - {kind: sweat, who: ソウタ, step: 3}
+      - {kind: bubble, text: "貯金から", who: ユイさん, step: 4}
     steps: 4
     lines:
       - {sp: 聞, text: "足りない60万円は、どうするんですか？ 銀行？", step: 1, st: "ノーマル", face: doubt}
@@ -408,14 +418,14 @@ scenes:
     bg: room_new
     camera: out
     chars:
-      - {who: ぽん太, at: left, act: cheer, face: happy}
-      - {who: コツさん, at: right, act: stand, face: happy}
+      - {who: ソウタ, at: left, act: cheer, face: happy}
+      - {who: ユイさん, at: right, act: stand, face: happy}
     props:
       - {kind: photo, image: photos/room_after.jpg, caption: "イメージ写真：直したあとの室内", at: center, step: 1}
-      - {kind: star, who: ぽん太, step: 2}
-      - {kind: bubble, text: "直すと、こう", who: コツさん, step: 3}
+      - {kind: star, who: ソウタ, step: 2}
+      - {kind: bubble, text: "直すと、こう", who: ユイさん, step: 3}
       - {kind: check, at: left, step: 4}
-      - {kind: heart, who: ぽん太, step: 5}
+      - {kind: heart, who: ソウタ, step: 5}
     steps: 5
     lines:
       - {sp: 答, text: "工事は4か月。直すと、こうなります。", step: 1, st: "喜び", face: happy}
@@ -439,15 +449,15 @@ scenes:
     bg: bankbook
     camera: in
     chars:
-      - {who: ぽん太, at: left, act: cheer, face: happy}
-      - {who: コツさん, at: right, act: stand, face: happy}
+      - {who: ソウタ, at: left, act: cheer, face: happy}
+      - {who: ユイさん, at: right, act: stand, face: happy}
     props:
       - {kind: money, text: "7万円", at: center, step: 1}
-      - {kind: star, who: ぽん太, step: 2}
-      - {kind: bubble, text: "毎月", who: コツさん, step: 3}
-      - {kind: bubble, text: "やること、ある？", who: ぽん太, step: 4}
+      - {kind: star, who: ソウタ, step: 2}
+      - {kind: bubble, text: "毎月", who: ユイさん, step: 3}
+      - {kind: bubble, text: "やること、ある？", who: ソウタ, step: 4}
       - {kind: calendar, text: "月1回", at: center, step: 5}
-      - {kind: sweat, who: コツさん, step: 6}
+      - {kind: sweat, who: ユイさん, step: 6}
     steps: 6
     lines:
       - {sp: 答, text: "通帳に、7万円。", step: 1, st: "喜び", face: happy, pause: 0.5}
@@ -455,44 +465,47 @@ scenes:
       - {sp: 答, text: "この7万円が、毎月。", step: 3, st: "喜び"}
       - {sp: 聞, text: "大家さんって、毎月、何かやることがあるんですか？", step: 4, st: "ノーマル", face: normal}
       - {sp: 答, text: "管理は管理会社に任せる。大家がやるのは、月に1回、通帳を見ること。", step: 5, st: "ノーマル", face: calm}
+      - {sp: 答, text: "そのかわり、管理会社には、家賃の3から5.5パーセントくらいを毎月払います。", step: 5, st: "ノーマル"}
       - {sp: 聞, text: "で、募集を出したら、すぐ決まるんですか？", step: 6, st: "ノーマル", face: normal}
       - {sp: 答, text: "……それは、最後に。", step: 6, st: "囁き", face: calm, pause: 0.6}
 
   - id: c3_cost
     layout: list
-    heading: "家賃84万円から引くもの"
+    heading: "家賃84万円から引く諸経費（1年・約）"
     items:
-      - {text: "固定資産税 3万円", note: "年1回の通知"}
-      - {text: "修繕の積み立て 10万円", note: "給湯器が壊れたら一発"}
-      - {text: "空室1か月ぶん 7万円", note: "毎年1か月は空くとみる"}
+      - {text: "固定資産税 約3万円", note: "年1回の通知"}
+      - {text: "管理費 約4万円", note: "家賃の3〜5.5％を毎月"}
+      - {text: "修繕の積み立て 約10万円", note: "給湯器が壊れたら一発"}
+      - {text: "空室1か月ぶん 約7万円", note: "毎年1か月は空くとみる"}
     lines:
-      - {sp: 答, text: "1年で84万円。ここから引きます。固定資産税、年3万円。", step: 1, mark: 1, st: "ノーマル"}
-      - {sp: 答, text: "修繕の積み立て、年10万円。", step: 2, mark: 2, st: "ノーマル"}
-      - {sp: 聞, text: "10万円で足りるんですか？ 古い家で。", st: "ツンツン", face: doubt}
-      - {sp: 答, text: "給湯器が壊れたら一発で飛びます。だから毎年積む。足りない年は、翌年で均す。", mark: 2, st: "ノーマル"}
-      - {sp: 答, text: "空室も見ておく。1年に1か月ぶん、7万円。", step: 3, mark: 3, st: "ノーマル"}
+      - {sp: 答, text: "1年で84万円。ここから諸経費を引きます。固定資産税、約3万円。", step: 1, mark: 1, st: "ノーマル"}
+      - {sp: 答, text: "管理会社に払う管理費。家賃の3から5.5パーセントで、約4万円。", step: 2, mark: 2, st: "ノーマル"}
+      - {sp: 答, text: "修繕の積み立て、約10万円。", step: 3, mark: 3, st: "ノーマル"}
+      - {sp: 聞, text: "10万円で足りるんですか？ 古い家で。", mark: 3, st: "ツンツン", face: doubt}
+      - {sp: 答, text: "給湯器が壊れたら一発で飛びます。だから毎年積む。足りない年は、翌年で均す。", mark: 3, st: "ノーマル"}
+      - {sp: 答, text: "空室も見ておく。1年に1か月ぶん、約7万円。", step: 4, mark: 4, st: "ノーマル"}
 
   - id: c3_rent
     layout: flow
     heading: "1年の手残り"
     items:
       - {text: "家賃 月7万円×12", value: "84万円"}
-      - {text: "経費と空室", value: "20万円", op: "−"}
-      - {text: "手残り", value: "64万円", op: "＝", sum: true}
+      - {text: "諸経費", value: "約24万円", op: "−"}
+      - {text: "手残り", value: "約60万円", op: "＝", sum: true}
     lines:
-      - {sp: 答, text: "84万円から、20万円を引いて、", step: 2, mark: 2, st: "ノーマル"}
-      - {sp: 答, text: "手残り、64万円。", step: 3, mark: 3, st: "喜び", pause: 0.6}
-      - {sp: 聞, text: "64万円……。300万円かけて、64万円。", mark: 1, st: "ノーマル", face: calm}
-      - {sp: 答, text: "表面で35パーセントだった利回りが、手残りで見ると21パーセント。", mark: 3, st: "ノーマル", face: calm}
+      - {sp: 答, text: "84万円から、諸経費の約24万円を引いて、", step: 2, mark: 2, st: "ノーマル"}
+      - {sp: 答, text: "手残り、約60万円。", step: 3, mark: 3, st: "喜び", pause: 0.6}
+      - {sp: 聞, text: "約60万円……。300万円かけて、60万円。", mark: 1, st: "ノーマル", face: calm}
+      - {sp: 答, text: "表面で35パーセントだった利回りが、手残りで見ると約20パーセント。", mark: 3, st: "ノーマル", face: calm}
 
   - id: c3_compare
     layout: compare
-    left:  {title: "ぽん太の皮算用", tone: bad,  items: ["総額 240万円", "表面 35％", "3.8年で戻る"]}
-    right: {title: "この例の現実", tone: good, items: ["総額 300万円", "手残り 64万円（21％）", "4.7年で戻る"]}
+    left:  {title: "ソウタの皮算用", tone: bad,  items: ["総額 240万円", "表面 35％", "3年かからず戻る"]}
+    right: {title: "この例の現実", tone: good, items: ["総額 300万円", "手残り 約60万円（約20％）", "約5年で戻る"]}
     lines:
-      - {sp: 答, text: "ぽん太くんの皮算用と、現実を並べます。", step: 1, st: "ノーマル"}
-      - {sp: 聞, text: "表面35パーセント、4年かからずに戻る……はずだった。", step: 1, st: "ノーマル", face: doubt}
-      - {sp: 答, text: "現実は、総額300万円、手残り64万円。5年弱で戻る計算。", step: 2, st: "ノーマル"}
+      - {sp: 答, text: "ソウタくんの皮算用と、現実を並べます。", step: 1, st: "ノーマル"}
+      - {sp: 聞, text: "表面35パーセント、3年かからずに戻る……はずだった。", step: 1, st: "ノーマル", face: doubt}
+      - {sp: 答, text: "現実は、総額300万円、手残り約60万円。約5年で戻る計算。", step: 2, st: "ノーマル"}
       - {sp: 聞, text: "それでも、銀行の定期よりは、ずっといいですよね？", st: "あまあま", face: happy}
       - {sp: 答, text: "そこは、はい。ただし、手間と、見落としの代償はこのとおり。", st: "熱血", face: fire}
 
@@ -502,11 +515,11 @@ scenes:
     bg: sky
     camera: out
     chars:
-      - {who: コツさん, at: left, act: point, face: happy}
-      - {who: ぽん太, at: right, act: cheer, face: happy}
+      - {who: ユイさん, at: left, act: point, face: happy}
+      - {who: ソウタ, at: right, act: cheer, face: happy}
     props:
       - {kind: headline, text: "1戸でこれなら、12戸なら？", step: 1}
-      - {kind: star, who: ぽん太, step: 2}
+      - {kind: star, who: ソウタ, step: 2}
     steps: 2
     lines:
       - {sp: 答, text: "ここからが、積み上げの話。1戸でこれなら、12戸ならどうなるか。", step: 1, st: "喜び", face: happy}
@@ -521,8 +534,8 @@ scenes:
       - {sp: 答, text: "手残りを貯めて、次の1戸に回す。", step: 1, st: "ノーマル"}
       - {sp: 答, text: "3戸で、月21万円。", step: 3, st: "喜び"}
       - {sp: 聞, text: "6戸で42万円！ 給料と並ぶ！ 会社、辞められるんじゃ……", step: 6, st: "あまあま", face: happy}
-      - {sp: 答, text: "辞めるのは早い。12戸で月84万円、年に1,000万円超え。ただし、計算です。", step: 12, st: "熱血", face: fire}
-      - {sp: 聞, text: "計算、って念を押しますね……。で、何年かかるんですか？", st: "ツンツン", face: doubt}
+      - {sp: 答, text: "辞めるのは早い。12戸で家賃は月84万円、年に1,000万円超え。ただし、家賃の計算です。", step: 12, st: "熱血", face: fire}
+      - {sp: 聞, text: "家賃の、って念を押しますね……。で、何年かかるんですか？", st: "ツンツン", face: doubt}
 
   # ---- 年表（★7・モデルケースの計算）。2 戸目からは 240 万円／戸で、手残り＋年 100 万円の貯金で資金が閉じる
   - id: c3_time
@@ -532,7 +545,7 @@ scenes:
       - {when: "1年目", text: "1戸目", note: "貯金300万円から"}
       - {when: "3年目", text: "3戸", note: "2戸目から1戸240万円\n手残り＋貯金 年100万円"}
       - {when: "5年目", text: "5戸", note: "月の家賃35万円"}
-      - {when: "8年目", text: "12戸", note: "年1,000万円"}
+      - {when: "8年目", text: "12戸", note: "家賃で年1,000万円"}
     lines:
       - {sp: 答, text: "この例では、1年目に1戸。貯金300万円から。", step: 1, mark: 1, st: "ノーマル"}
       - {sp: 答, text: "2戸目からは、買う前に屋根裏を見て、1戸240万円に抑える。", step: 2, mark: 2, st: "ノーマル"}
@@ -547,11 +560,11 @@ scenes:
     bg: office
     camera: in
     chars:
-      - {who: コツさん, at: center, act: sit, face: calm}
+      - {who: ユイさん, at: center, act: sit, face: calm}
     props:
       - {kind: headline, text: "約束の話：いちばん高くついた失敗", step: 1}
       - {kind: sign, text: "募集 7万5千円", at: left, step: 2}
-      - {kind: zzz, who: コツさん, step: 3}
+      - {kind: zzz, who: ユイさん, step: 3}
       - {kind: calendar, text: "4か月", at: right, step: 4}
       - {kind: stamp, text: "空室", at: center, step: 5}
     steps: 5
@@ -580,7 +593,7 @@ scenes:
     time: day
     camera: in
     chars:
-      - {who: コツさん, at: center, act: point, face: happy}
+      - {who: ユイさん, at: center, act: point, face: happy}
     props:
       - {kind: stamp, text: "契約", at: left, step: 1}
       - {kind: check, at: right, step: 2}
@@ -593,7 +606,7 @@ scenes:
       - {sp: 聞, text: "8か月……。でも、ここから毎月7万円。", step: 3, st: "ノーマル", face: calm}
 
   # ================================================================
-  # 締め（約 50 秒）: この例から分かること 1 行 → コメントの問い → 今日の一歩（note・次回予告。20 秒以上）
+  # 締め（約 50 秒）: この例から分かること 1 行 → 探し方・買い方・紹介のされ方は note → 次回予告（20 秒以上）
   # ================================================================
   - id: view
     layout: quote
@@ -610,32 +623,31 @@ scenes:
     time: evening
     camera: pan_left
     chars:
-      - {who: ぽん太, at: left, act: walk, face: happy}
-      - {who: コツさん, at: right, act: walk, face: normal}
+      - {who: ソウタ, at: left, act: walk, face: happy}
+      - {who: ユイさん, at: right, act: walk, face: normal}
     props:
-      - {kind: bubble, text: "昼休みに見てみます", who: ぽん太, step: 1}
-      - {kind: headline, text: "あなたの地元に、100万円以下の家は？", step: 2}
-      - {kind: question, who: ぽん太, step: 3}
-      - {kind: bubble, text: "コメントで", who: コツさん, step: 4}
+      - {kind: question, who: ソウタ, step: 1}
+      - {kind: headline, text: "探し方・買い方・紹介してもらうやり方は note に", step: 2}
+      - {kind: bubble, text: "noteに全部", who: ユイさん, step: 3}
+      - {kind: bubble, text: "概要欄から", who: ソウタ, step: 4}
     steps: 4
     lines:
-      - {sp: 聞, text: "今度の昼休み、ポータルサイトで見てみます。", step: 1, st: "あまあま", face: happy}
-      - {sp: 答, text: "ところで、あなたの地元で、100万円以下の家、見たことありますか？", step: 2, st: "ノーマル"}
-      - {sp: 聞, text: "僕は、まだ気にして見たことがないです。", step: 3, st: "ノーマル", face: doubt}
-      - {sp: 答, text: "あれば、区や市まででいいので、コメントで教えてください。", step: 4, st: "喜び", face: happy}
+      - {sp: 聞, text: "見る目は分かりました。でも、こういう家、僕はどこで見つければ……。", step: 1, st: "ノーマル", face: doubt}
+      - {sp: 答, text: "探し方、買い方、それに業者さんから紹介してもらうやり方。", step: 2, st: "ノーマル"}
+      - {sp: 答, text: "ここは長くなるので、noteに全部まとめています。", step: 3, st: "喜び", face: happy}
+      - {sp: 聞, text: "概要欄から、読んでみます。", step: 4, st: "あまあま", face: happy}
 
   - id: ending
     layout: ending
-    heading: "ポータルサイトで\n「50万〜300万円・戸建て」を1日眺める"
-    sub: "買わなくていい。どんな家が、いくらで出ているかを知るだけ"
-    cta: "確認12項目の表と見積りの内訳は note に ▶"
+    heading: "安い家の探し方・買い方・\n紹介してもらうやり方は note に"
+    sub: "買う前の確認12項目のチェック表と、見積りの内訳表も"
+    cta: "note は概要欄から ▶"
     lines:
-      - {sp: 答, text: "今日の一歩。ポータルサイトで、50万から300万円、戸建て、で検索する。", st: "喜び", face: happy}
-      - {sp: 答, text: "買わなくていい。どんな家が、いくらで出ているかを知るだけで十分です。", st: "ノーマル"}
-      - {sp: 聞, text: "買う前の確認12項目のチェック表と、見積りの内訳表は、", st: "あまあま", face: happy, pause: 0.1}
-      - {sp: 聞, text: "概要欄のnoteに置いてあります。", st: "あまあま", face: happy}
-      - {sp: 答, text: "次回は、50万円の家の探し方。どのサイトを、どう絞るか。", st: "ノーマル"}
-      - {sp: 聞, text: "登録して、待っててください。僕も、昼休みに探します。", st: "あまあま", face: happy, pause: 1.0}
+      - {sp: 答, text: "安い家の探し方、買い方、紹介してもらうやり方は、概要欄のnoteにまとめています。", st: "喜び", face: happy}
+      - {sp: 聞, text: "買う前の確認12項目のチェック表と、見積りの内訳表も、", st: "あまあま", face: happy, pause: 0.1}
+      - {sp: 聞, text: "noteに置いてあります。", st: "あまあま", face: happy}
+      - {sp: 答, text: "次回は、再建築不可の家は、買っていいのか。貸す前提で、数字で答えます。", st: "ノーマル"}
+      - {sp: 聞, text: "チャンネル登録して、待っててください。", st: "あまあま", face: happy, pause: 1.0}
 
 # ================================================================
 # SNS（docs/12 §7。make_posts.py が文面ファイルにする）
@@ -646,24 +658,24 @@ sns:
   # note の記事 URL は note_url に 1 回だけ書き、本文では {{NOTE_URL}}。再生リストは {{PLAYLIST_URL}}。
   # v6: 全部モデルケースの言い方（「私が」「うちの」「1戸目で損した」など体験談の言い方はしない）。
   note_url: "https://note.com/dokechi_hudousan/n/XXXXXXXX"   # 記事を公開したら XXXXXXXX を置き換える
-  note_items: ["買う前の確認12項目のチェック表", "見積りの内訳表（屋根・水回り・床・壁の金額）"]   # 説明欄 2 行目に書く具体物
+  note_items: ["安い家の探し方・買い方・業者から紹介してもらうやり方", "買う前の確認12項目のチェック表と見積りの内訳表"]   # 説明欄 2 行目に書く具体物
   series: "1戸目の数字"          # 連載名（docs/13 §5.2）。説明欄・固定コメントの再生リストの行に出る
-  next_video: "50万円の家の探し方"   # ending の予告と同じ。説明欄の「▼ 次回」に出る
+  next_video: "再建築不可の家は、買っていいのか"   # ending の予告と同じ。説明欄の「▼ 次回」に出る
   x_thread:
     - "買値50万円の戸建てを直して、家賃7万円で貸す。そんなやり方を、モデルケースの数字で追う動画を作りました。築50年の家を買ってから、家賃が通帳に入るまでの数字と、よくある失敗2つ。（1/7）"
     - "安い理由は3つ。築50年、再建築ができない土地、相続で持て余した家。売る側は早く手放したいので、値段が落ちる。都内の区部でも出ます。郊外なら、もっと。（2/7）"
     - "「50万円の家」は、300万円の家として見る。買値に、直しと諸費用を足した総額です。買値だけ見て皮算用すると、あとで倍以上ずれる。安い家ほど、買値より直しのほうが高い。（3/7）"
-    - "この例の手残りは年64万円。家賃84万円から、固定資産税・修繕の積み立て・空室1か月ぶんの20万円を引いた数字です。かけた300万円が戻るのに、5年弱。（4/7）"
+    - "この例の手残りは年約60万円。家賃84万円から、固定資産税・管理費・修繕の積み立て・空室の諸経費 約24万円を引いた数字です。かけた300万円が戻るのに、約5年。（4/7）"
     - "失敗1。直しの見積り150万円が、210万円に。原因は屋根裏の雨漏り。買う前に屋根裏を見ていないと、それだけで60万円。1戸の手残りのほぼ1年分。（5/7）"
     - "失敗2。相場7万円のところを7万5千円で募集して、4か月反応なし。7万円に下げると翌週に決まる。5千円欲張って、約30万円の損。よくある失敗です。（6/7）"
-    - "動画は約10分。0:49で50万円の家に出会い、3:41で見積りが膨らみ、7:48でいちばん高くついた失敗。数字は説明のためのモデルケース。確認12項目の表と見積りの内訳表は note → {{NOTE_URL}}（7/7）"
+    - "動画は約10分。0:49で50万円の家に出会い、3:41で見積りが膨らみ、7:48でいちばん高くついた失敗。数字はモデルケース。安い家の探し方・買い方・紹介してもらうやり方は note → {{NOTE_URL}}（7/7）"
   x_single:
     - "買値50万円の家を、家賃7万円で貸すやり方。家賃が通帳に入るまでを、モデルケースの数字で追いました。見積りが60万円膨らむ失敗と、4か月空室の失敗も。今朝7時に公開しました。約10分。"
-    - "「50万円の家」は、300万円の家として見る。直し210万、諸費用40万。買値だけで皮算用すると、表面35％が、手残り21％になります。モデルケースの数字を1段ずつ。"
+    - "「50万円の家」は、300万円の家として見る。直し210万、諸費用40万。買値だけで皮算用すると、表面35％が、手残り約20％になります。モデルケースの数字を1段ずつ。"
     - "家賃を5千円欲張って、4か月空室。30万円の損。下げた5千円は年6万円、取り戻すのに5年。貸す前に相場を見ていれば防げる、よくある失敗です。動画の7:48から。"
     - "買値50万円の家でも、仲介手数料は最大で税込33万円。2024年7月から、800万円以下の家や土地は上限が30万円＋税になりました。上限なので定額ではなく、媒介契約の前に説明と書面の合意が要ります。安い家ほど、諸費用の割合が重くなります。動画の2:40から。"
   threads:
-    - "買値50万円・築50年の戸建てを直して、家賃7万円で貸す。そんなやり方を、モデルケースの数字で追いました。「50万円の家」ではなく、直し210万と諸費用40万を足した「300万円の家」として見る。手残りは年64万円、5年弱で戻る計算です。あなたの地元で、100万円以下の家を見たことはありますか？"
+    - "買値50万円・築50年の戸建てを直して、家賃7万円で貸す。そんなやり方を、モデルケースの数字で追いました。「50万円の家」ではなく、直し210万と諸費用40万を足した「300万円の家」として見る。管理費などの諸経費を引いた手残りは年約60万円、約5年で戻る計算です。買値・直し・家賃、あなたならどこから見ますか？"
     - "家賃を5千円欲張って、4か月空室。大家さんの失敗で、よく聞く形です。相場7万円のところを7万5千円で募集して反応なし。7万円に下げると翌週に決まる。損は約30万円。家賃でも、売値でも、「あと少し高く」で失敗した経験はありますか？"
   note_outline:
     title: "50万円の戸建てを家賃7万円で貸すまでの全部の数字（モデルケース）｜買う前の確認12項目と見積りの内訳"
@@ -671,18 +683,19 @@ sns:
       - "買値50万円・築50年の家が出てくる理由（築年・再建築不可・相続）"
       - "モデルケースの1戸の数字: 買値50 ＋ 直し210 ＋ 諸費用40 ＝ 総額300万円"
       - "諸費用40万円の中身: 800万円以下の家の仲介手数料は上限が税込33万円（2024年7月から。上限で、定額ではない）"
-      - "家賃84万円 − 経費と空室20万円 ＝ 手残り64万円（表面35％が手残り21％になる計算）"
+      - "家賃84万円 − 諸経費 約24万円（固定資産税・管理費・修繕の積み立て・空室） ＝ 手残り 約60万円（表面35％が手残り約20％）"
       - "よくある失敗1: 見積りが150万→210万に膨らむ原因（屋根裏の雨漏り）"
       - "よくある失敗2: 7万5千円で4か月空室、7万円で翌週に決まる"
     paid:
+      - "安い家の探し方・買い方・業者から紹介してもらうやり方"
       - "見積りの内訳表（屋根・水回り・床・壁・電気・残置物の撤去。それぞれの金額の目安と、膨らみやすい所）"
       - "買う前の確認12項目のチェック表（屋根裏・床下・給排水・境界・再建築の可否・相場家賃 ほか）"
       - "12戸までの年表の原資（モデルケース。手残り＋給料からの貯金。年ごとの残高の表）"
       - "募集家賃の決め方（相場の調べ方と、下げる判断の目安）"
-    paid_contents: "見積りの内訳表 1 枚（6 行＋膨らみやすい所）、買う前の確認12項目のチェック表 1 枚、12戸までの年表の原資 1 表（モデルケース 8 年分）、募集家賃の決め方（相場の調べ方と下げる目安）"
+    paid_contents: "安い家の探し方・買い方・紹介してもらうやり方、見積りの内訳表 1 枚（6 行＋膨らみやすい所）、買う前の確認12項目のチェック表 1 枚、12戸までの年表の原資 1 表（モデルケース 8 年分）、募集家賃の決め方（相場の調べ方と下げる目安）"
     price: 500
   community_quiz:   # 公開前日の 4 択クイズ（docs/13 §9.2）。投票で出す。answer_in は完成版の mp4 で確かめる
     q: "買値50万円・築50年の家。貸せる状態にするまでの直し代、いくらくらいかかると思いますか？（答えは動画のモデルケースで）"
     choices: ["50万円", "150万円", "210万円", "400万円"]
     answer_in: "2:16 あたり"
-  pinned_comment: "note にある物: ① 買う前の確認12項目のチェック表 ② 見積りの内訳表（屋根・水回り・床・壁の金額） → {{NOTE_URL}}\n連載「1戸目の数字」の再生リスト → {{PLAYLIST_URL}}\nあなたの地元で100万円以下の家を見たことがあれば、区や市まででいいので教えてください。登場する物件・数字は説明のためのモデルケースです。個別のご相談・物件のご紹介は承っておりませんが、動画の内容への質問はここにどうぞ。48時間は全部返します。"
+  pinned_comment: "note にある物: ① 安い家の探し方・買い方・業者から紹介してもらうやり方 ② 買う前の確認12項目のチェック表と見積りの内訳表 → {{NOTE_URL}}\n連載「1戸目の数字」の再生リスト → {{PLAYLIST_URL}}\n登場する物件・数字は説明のためのモデルケースです。個別のご相談・物件のご紹介は承っておりませんが、動画の内容への質問はここにどうぞ。48時間は全部返します。"

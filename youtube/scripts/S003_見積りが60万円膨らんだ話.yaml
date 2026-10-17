@@ -1,5 +1,5 @@
 # ショート ― 002 物語版（v6・モデルケース版）の失敗1「直しの見積りが 150 万 → 210 万に膨らむ」を 1 つの答えに
-# よくある失敗のモデルケースとして語る。コツさんの体験として語らない
+# よくある失敗のモデルケースとして語る。ユイさんの体験として語らない
 # 推定尺: 文字数 × 0.155 ＋ 台詞 × 0.3 ＋ 場面 × 0.6 ＝ 約 51 秒（台詞 14・場面 6）
 # ★ 公開前に相場として妥当かを確認: 築50年の戸建てで床と水回りの見積り150万円、屋根裏の雨漏りで＋60万円（210万円）の幅。点検口から見る確認の仕方が一般的な方法として正しいか
 id: "S003"
@@ -13,8 +13,9 @@ publish:
   lead: "買値50万円の戸建てで、直しの見積りが150万円から210万円に膨らむ。よくある失敗のモデルケースです。原因は、たった1つ。買う前の確認の話を、説明のための数字で。"
   tags: [不動産投資, 大家, ボロ戸建て, リフォーム, 戸建て投資, Shorts]
 speakers:
-  聞: {speaker: "ずんだもん", style: "ノーマル", name: "ぽん太", color: "#2F80ED", char: "ぽん太"}
-  答: {speaker: "青山龍星", style: "ノーマル", name: "コツさん", color: "#FF7A1A", char: "コツさん"}
+  聞: {speaker: "ずんだもん", style: "ノーマル", name: "ソウタ", color: "#2F80ED", char: "ソウタ"}
+  答: {speaker: "九州そら", style: "ノーマル", name: "ユイさん", color: "#FF7A1A", char: "ユイさん",
+       style_map: {喜び: あまあま, 熱血: ツンツン, しっとり: ノーマル, かなしみ: ノーマル, 不機嫌: ツンツン, 囁き: ささやき}}
 voice: {speed: 1.1, intonation: 1.3}
 scenes:
   - id: hook
@@ -22,7 +23,7 @@ scenes:
     bg: site
     camera: shake
     chars:
-      - {who: コツさん, at: center, act: shock, face: surprised}
+      - {who: ユイさん, at: center, act: shock, face: surprised}
     props:
       - {kind: headline, text: "150万→210万円", step: 1}
       - {kind: arrow, text: "＋60万円", dir: up, at: right, step: 1}
@@ -34,7 +35,7 @@ scenes:
     bg: room_old
     camera: in
     chars:
-      - {who: コツさん, at: center, act: point, face: normal}
+      - {who: ユイさん, at: center, act: point, face: normal}
     props:
       - {kind: price, text: "買値 50万円", at: left, step: 1}
       - {kind: price, text: "直し 150万円", at: right, step: 2}
@@ -48,10 +49,10 @@ scenes:
     bg: site
     camera: in
     chars:
-      - {who: コツさん, at: center, act: think, face: calm}
+      - {who: ユイさん, at: center, act: think, face: calm}
     props:
       - {kind: headline, text: "工事、1週間目", step: 1}
-      - {kind: sweat, who: コツさん, step: 2}
+      - {kind: sweat, who: ユイさん, step: 2}
       - {kind: sign, text: "屋根裏に雨漏り", at: right, step: 3}
     steps: 3
     lines:
@@ -72,11 +73,11 @@ scenes:
     bg: desk
     camera: still
     chars:
-      - {who: コツさん, at: center, act: sit, face: calm}
+      - {who: ユイさん, at: center, act: sit, face: calm}
     props:
       - {kind: sign, text: "買う前に屋根裏を見なかった", at: right, step: 1}
       - {kind: check, at: left, step: 2}
-      - {kind: bubble, text: "点検口から", who: コツさん, step: 3}
+      - {kind: bubble, text: "点検口から", who: ユイさん, step: 3}
     steps: 3
     lines:
       - {sp: 答, text: "原因は、買う前に屋根裏を見なかったこと。それだけ。", step: 1, st: "しっとり", face: calm}
