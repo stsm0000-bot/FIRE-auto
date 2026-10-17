@@ -23,7 +23,7 @@ body::after{content:"";position:absolute;inset:0;pointer-events:none;background:
 .chap{font-size:34px;font-weight:900;color:#fff;background:var(--ink);letter-spacing:.06em;padding:8px 26px;border-radius:999px;font-variant-numeric:tabular-nums;flex:none}
 .chap:empty{display:none}
 .body{flex:1;display:flex;align-items:center;justify-content:center;padding:0 var(--pad);margin-bottom:calc(var(--subband) + 58px)}
-.foot{position:absolute;right:var(--pad);bottom:calc(var(--subband) + 12px);font-size:25px;color:var(--mute);letter-spacing:.02em}
+.foot{position:absolute;right:calc(var(--pad) + 150px);bottom:calc(var(--subband) + 12px);font-size:25px;color:var(--mute);letter-spacing:.02em}
 html[data-kind="short"] .foot{bottom:90px;right:auto;left:0;width:100%;box-sizing:border-box;padding:0 64px;font-size:22px;line-height:1.4;text-align:center;text-wrap:balance}
 html[data-kind="short"] .q{max-width:92%;font-size:32px}
 .off{opacity:var(--off)}
@@ -83,6 +83,8 @@ html[data-kind="short"] .q{max-width:92%;font-size:32px}
 html[data-kind="short"] .flow .row{flex-direction:column}
 html[data-kind="short"] .flow .arrow{transform:rotate(90deg)}
 /* ショートで数式の箱が 4 つ以上: 縮めて字幕帯に重ねない */
+.list.n4,.list.n5{zoom:.86}
+.list.n4 .row,.list.n5 .row{gap:14px}
 html[data-kind="short"] .flow.n4,html[data-kind="short"] .flow.n5{zoom:.78}
 html[data-kind="short"] .flow.n4 .row,html[data-kind="short"] .flow.n5 .row{gap:10px}
 html[data-kind="short"] .list.n5,html[data-kind="short"] .list.n6{zoom:.85}
