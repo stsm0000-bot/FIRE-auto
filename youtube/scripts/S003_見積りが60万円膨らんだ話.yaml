@@ -24,7 +24,7 @@ scenes:
     chars:
       - {who: コツさん, at: center, act: shock, face: surprised}
     props:
-      - {kind: headline, text: "よくある失敗：見積り 150万円 → 210万円", step: 1}
+      - {kind: headline, text: "見積り150万円→210万円", step: 1}
       - {kind: arrow, text: "＋60万円", dir: up, at: right, step: 1}
     steps: 1
     lines:
