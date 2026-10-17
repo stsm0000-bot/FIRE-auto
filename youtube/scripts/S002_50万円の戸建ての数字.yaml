@@ -83,7 +83,7 @@ scenes:
   - id: ending
     layout: ending
     label: "続きは note で"
-    heading: "安い家の探し方・買い方は\nnote に"
+    heading: "安い家の探し方・\n買い方は note に"
     sub: "業者から紹介してもらうやり方も"
     cta: "note は概要欄から ▶"
     lines:
