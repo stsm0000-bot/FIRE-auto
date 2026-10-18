@@ -1,0 +1,268 @@
+# ================================================================
+# 長尺のひな形（v7。002 を型にしたもの）
+# 使い方: このファイルをコピーして「NNN_題名.yaml」にし、○○ と ★ を埋める。
+#   コピー例: copy scripts\_ひな形_長尺.yaml scripts\003_再建築不可の家は買っていいのか.yaml
+#   確かめる: python pipeline\make_all.py scripts\003_….yaml --tts stub   （音声なしで画と尺）
+#   本番:     python pipeline\make_all.py scripts\003_….yaml              （VOICEVOX を起動しておく）
+#
+# ■ 守ること（docs/07・docs/15 §2。毎回）
+#   - 物件・数字・失敗は「モデルケース（説明のための例）」。本人の体験として言い切らない（「私が買った」「私の家」×）
+#   - 使わない言葉: 簡単・誰でも・確実・必ず・不労所得・儲かる（make_posts が検査する）
+#   - 場所は区・市まで。社名・丁目・駅名は出さない。個別相談を誘わない
+#   - 経費は管理費（家賃の 3〜5.5％）を必ず入れる。「諸経費 約○万円」と丸めてよい
+#   - 仲介手数料は法令どおり（800 万円以下は上限 税込 33 万円。上限で定額ではない）
+#   - ポータルサイトで探そう・地元の家をコメントで、は言わない。送客は note
+#     （探し方・買い方・業者から紹介してもらうやり方）。締めは label「続きは note で」
+#   - 写真は「イメージ写真」と出す。AI の写真ならアップロード時に「改変または合成コンテンツ」
+#
+# ■ 型（約 10 分。8 分以上でミッドロール広告）
+#   フック（0〜3 秒に数字）→ 約束と最後の山の予告 → 名乗り → 第 1 章 → 第 2 章（失敗）→ 第 3 章（数字の現実）
+#   → この例から分かること → note への送客 → 締め（次回予告）
+#   場面は「物語（layout: scene）」と「図解（list・flow・compare など）」を交互に。同じ画が 8 秒を超えないよう step を進める
+#   1 台詞は 8 秒以内（約 45 字まで）。長い台詞は 2 つに割る
+#
+# ■ ★ 公開前に、相場として妥当かを本人に確認する数字（台詞には ★ を入れない。ここに書く）
+#   ★1 ○○
+#   ★2 ○○
+# ================================================================
+id: "NNN"
+kind: long
+title: "○○｜○○"                       # 28 字以内。数字＋結果＋（失敗・理由）。docs/13 §3
+question: "○○は、○○なのか"            # 画面左上に出る問い。動画全体で答える 1 問
+note_url: "https://note.com/dokechi_hudousan"
+disclaimer: "登場する物件・数字は説明のためのモデルケースです。個別のご相談・物件のご紹介は承っておりません"
+thumbnail:
+  big: "○○\n○○万円"                   # 2 行・10 字以内。数字を入れる
+  sub: "○○のモデルケース"
+  # char: ソウタ                       # 既定はユイさん。驚きの回はソウタ
+  # face: surprised
+publish:
+  lead: "○○を、モデルケースの数字で追います。○○の失敗、○○まで。数字は説明のための例です。"
+  tags: [不動産投資, 大家, 戸建て投資, 小規模大家, 家賃収入, ○○]
+speakers:
+  聞: {speaker: "ずんだもん", style: "ノーマル", name: "ソウタ", color: "#2F80ED", char: "ソウタ"}
+  答: {speaker: "WhiteCUL", style: "ノーマル", name: "ユイさん", color: "#FF7A1A", char: "ユイさん",
+       style_map: {喜び: たのしい, 熱血: ノーマル, しっとり: ノーマル, かなしみ: かなしい, 不機嫌: ノーマル, 囁き: ノーマル}}
+voice: {speed: 1.1, intonation: 1.3}
+
+scenes:
+  # ================================================================
+  # フック（0:00〜0:12）: 0〜3 秒で数字。画面に 0 秒から「モデルケース」。挨拶なし
+  # ================================================================
+  - id: hook
+    layout: scene
+    bg: house_old                       # street / house_old / house_new / room_old / room_new / office / desk / bank / bankbook / site / night / sky / blank
+    time: day
+    camera: in                          # still / in / out / pan_left / pan_right / shake
+    chars:
+      - {who: ソウタ, at: left, act: stand, face: normal}
+      - {who: ユイさん, at: right, act: point, face: normal}
+    props:
+      - {kind: headline, text: "モデルケース：○○", step: 1}
+      - {kind: price, text: "○○万円", at: center, step: 1}
+      - {kind: exclaim, who: ソウタ, step: 2}
+    steps: 2
+    lines:
+      - {sp: 答, text: "○○を、○○する。そんなやり方があります。", step: 1, st: "喜び", face: happy}
+      - {sp: 聞, text: "えっ、○○！？", step: 2, st: "あまあま", face: surprised}
+
+  # ---- 約束（数字はモデルケース）と、最後に回収する山の予告（オープンループ）
+  - id: hook2
+    layout: scene
+    bg: house_old
+    camera: pan_right
+    chars:
+      - {who: ソウタ, at: left, act: stand, face: surprised}
+      - {who: ユイさん, at: right, act: point, face: normal}
+    props:
+      - {kind: headline, text: "見終わると：○○が分かる", step: 1}
+      - {kind: sign, text: "最後に：○○", at: center, step: 2}
+    steps: 2
+    lines:
+      - {sp: 答, text: "数字は、説明のためのモデルケース。ただし、失敗も込み。", step: 1, st: "ノーマル"}
+      - {sp: 答, text: "最後に、この例でいちばん高くついた失敗も。ヒントは、○○。", step: 2, st: "囁き", face: calm, pause: 0.5}
+
+  # ---- 名乗り（固定文）
+  - id: intro
+    layout: title
+    cast: true
+    heading: "不動産の仕入れと販売をしている\n大家のユイです"
+    sub: "数字は説明のためのモデルケース"
+    lines:
+      - {sp: 答, text: "不動産の仕入れと販売を仕事にしている大家、ユイです。", st: "ノーマル"}
+
+  # ================================================================
+  # 第 1 章
+  # ================================================================
+  - id: c1
+    layout: chapter
+    heading: "○○"
+    lines:
+      - {sp: 答, text: "まず、○○から。", st: "ノーマル"}
+
+  - id: c1_list
+    layout: list
+    heading: "○○の理由"
+    items:
+      - {text: "○○", note: "○○"}
+      - {text: "○○", note: "○○"}
+      - {text: "○○", note: "○○"}
+    lines:
+      - {sp: 答, text: "理由は3つ。1つ目、○○。", step: 1, mark: 1, st: "ノーマル"}
+      - {sp: 答, text: "2つ目、○○。", step: 2, mark: 2, st: "ノーマル"}
+      - {sp: 聞, text: "○○って、○○ですよね？", mark: 2, st: "ツンツン", face: doubt}
+      - {sp: 答, text: "3つ目、○○。", step: 3, mark: 3, st: "熱血", face: fire}
+      # ---- note への送客 1 回目（視聴者が「どうやって？」と思う所で）
+      - {sp: 聞, text: "で、こういう家って、どうやって見つけるんですか？", mark: 3, st: "ノーマル", face: doubt}
+      - {sp: 答, text: "探し方と買い方、業者さんから紹介してもらうやり方は、概要欄のnoteにまとめています。", mark: 3, st: "ノーマル", face: happy}
+
+  # ================================================================
+  # 第 2 章（失敗の山）
+  # ================================================================
+  - id: c2
+    layout: chapter
+    heading: "○○"
+    lines:
+      - {sp: 答, text: "○○。ここからが本体です。", st: "ノーマル"}
+
+  - id: site
+    layout: scene
+    bg: site
+    camera: shake
+    chars:
+      - {who: ユイさん, at: center, act: shock, face: surprised}
+    props:
+      - {kind: price, text: "○○万円", x: 18, x_fixed: true, step: 1}
+      - {kind: cross, x: 18, x_fixed: true, step: 2}
+      - {kind: price, text: "○○万円", x: 82, x_fixed: true, step: 2}
+    steps: 2
+    lines:
+      - {sp: 答, text: "見積りは、○○万円のはずだった。", step: 1, st: "しっとり", face: calm}
+      - {sp: 答, text: "それが、○○万円。", step: 2, st: "かなしみ", face: calm, pause: 0.6}
+      - {sp: 聞, text: "○○万円！？", step: 2, st: "あまあま", face: surprised}
+
+  - id: c2_bar
+    layout: bar
+    heading: "○○（この例）"
+    rows:
+      - {label: "予定", value: 150, note: "○○万円"}
+      - {label: "実際", value: 210, note: "○○万円（○○）"}
+    lines:
+      - {sp: 答, text: "予定、○○万円。", step: 1, mark: 1, st: "ノーマル"}
+      - {sp: 答, text: "実際、○○万円。原因は、○○。", step: 2, mark: 2, st: "しっとり", face: calm}
+
+  # ================================================================
+  # 第 3 章（数字の現実。経費は管理費込み）
+  # ================================================================
+  - id: c3
+    layout: chapter
+    heading: "○○"
+    lines:
+      - {sp: 答, text: "最後に、手元に残るお金。", st: "ノーマル"}
+
+  - id: c3_cost
+    layout: list
+    heading: "家賃○○万円から引く諸経費（1年・約）"
+    items:
+      - {text: "固定資産税 約○万円", note: "年1回の通知"}
+      - {text: "管理費 約○万円", note: "家賃の3〜5.5％を毎月"}
+      - {text: "修繕の積み立て 約○万円", note: "給湯器が壊れたら一発"}
+      - {text: "空室1か月ぶん 約○万円", note: "毎年1か月は空くとみる"}
+    lines:
+      - {sp: 答, text: "ここから諸経費を引きます。固定資産税、約○万円。", step: 1, mark: 1, st: "ノーマル"}
+      - {sp: 答, text: "管理会社に払う管理費。家賃の3から5.5パーセントで、約○万円。", step: 2, mark: 2, st: "ノーマル"}
+      - {sp: 答, text: "修繕の積み立て、約○万円。", step: 3, mark: 3, st: "ノーマル"}
+      - {sp: 答, text: "空室も見ておく。1年に1か月ぶん、約○万円。", step: 4, mark: 4, st: "ノーマル"}
+
+  - id: c3_rent
+    layout: flow
+    heading: "1年の手残り"
+    items:
+      - {text: "家賃 月○万円×12", value: "○○万円"}
+      - {text: "諸経費", value: "約○○万円", op: "−"}
+      - {text: "手残り", value: "約○○万円", op: "＝", sum: true}
+    lines:
+      - {sp: 答, text: "○○万円から、諸経費の約○○万円を引いて、", step: 2, mark: 2, st: "ノーマル"}
+      - {sp: 答, text: "手残り、約○○万円。", step: 3, mark: 3, st: "喜び", pause: 0.6}
+
+  - id: c3_compare
+    layout: compare
+    left:  {title: "ソウタの皮算用", tone: bad,  items: ["○○", "表面 ○○％"]}
+    right: {title: "この例の現実", tone: good, items: ["○○", "手残り 約○○万円"]}
+    lines:
+      - {sp: 答, text: "ソウタくんの皮算用と、現実を並べます。", step: 1, st: "ノーマル"}
+      - {sp: 答, text: "現実は、○○。", step: 2, st: "ノーマル"}
+
+  # ================================================================
+  # 締め: この例から分かること → note → 次回予告（20 秒以上）
+  # ================================================================
+  - id: view
+    layout: quote
+    heading: "この例から分かること"
+    text: "○○は、○○で決まる"
+    caption: "○○"
+    lines:
+      - {sp: 答, text: "この例から分かること。○○は、○○で決まる。", step: 1, st: "しっとり"}
+
+  - id: funnel
+    layout: scene
+    bg: street
+    time: evening
+    camera: pan_left
+    chars:
+      - {who: ソウタ, at: left, act: walk, face: doubt}
+      - {who: ユイさん, at: right, act: walk, face: normal}
+    props:
+      - {kind: question, who: ソウタ, step: 1}
+      - {kind: headline, text: "探し方・買い方・紹介してもらうやり方は note に", step: 2}
+      - {kind: bubble, text: "noteに全部", who: ユイさん, step: 3}
+    steps: 3
+    lines:
+      - {sp: 聞, text: "見る目は分かりました。でも、こういう家、僕はどこで見つければ……。", step: 1, st: "ノーマル", face: doubt}
+      - {sp: 答, text: "探し方、買い方、それに業者さんから紹介してもらうやり方。", step: 2, st: "ノーマル"}
+      - {sp: 答, text: "ここは長くなるので、noteに全部まとめています。", step: 3, st: "喜び", face: happy}
+
+  - id: ending
+    layout: ending
+    label: "続きは note で"
+    heading: "安い家の探し方・買い方・\n紹介してもらうやり方は note に"
+    sub: "○○の表も"
+    cta: "note は概要欄から ▶"
+    lines:
+      - {sp: 答, text: "安い家の探し方、買い方、紹介してもらうやり方は、概要欄のnoteにまとめています。", st: "喜び", face: happy}
+      - {sp: 答, text: "次回は、○○。", st: "ノーマル"}
+      - {sp: 聞, text: "チャンネル登録して、待っててください。", st: "あまあま", face: happy, pause: 1.0}
+
+# ================================================================
+# SNS（make_posts.py が文面ファイルにする。docs/14 §8 が見本）
+#   時刻（「3:58 で〜」）は、本番のビルド後に out/<id>/字幕の時刻.txt を見て合わせる
+# ================================================================
+sns:
+  note_url: "https://note.com/dokechi_hudousan/n/XXXXXXXX"   # 記事を公開したら置き換える
+  note_items: ["安い家の探し方・買い方・業者から紹介してもらうやり方", "○○の表"]
+  series: "1戸目の数字"
+  next_video: "○○"
+  x_thread:
+    - "○○。そんなやり方を、モデルケースの数字で追う動画を作りました。（1/5）"
+    - "○○。（2/5）"
+    - "○○。（3/5）"
+    - "○○。（4/5）"
+    - "動画は約10分。0:00で○○、0:00で○○。数字はモデルケース。安い家の探し方・買い方・紹介してもらうやり方は note → {{NOTE_URL}}（5/5）"
+  x_single:
+    - "○○。モデルケースの数字で追いました。今朝7時に公開しました。約10分。"
+    - "○○。"
+    - "○○。動画の0:00から。"
+  threads:
+    - "○○。モデルケースの数字です。○○、あなたならどこから見ますか？"
+    - "○○。○○した経験はありますか？"
+  note_outline:
+    title: "○○（モデルケース）｜○○"
+    free: ["○○", "○○"]
+    paid: ["安い家の探し方・買い方・業者から紹介してもらうやり方", "○○"]
+    paid_contents: "○○"
+    price: 500
+  community_quiz:
+    q: "○○、いくらくらいだと思いますか？（答えは動画のモデルケースで）"
+    choices: ["○○万円", "○○万円", "○○万円", "○○万円"]
+    answer_in: "0:00 あたり"
+  pinned_comment: "note にある物: ① 安い家の探し方・買い方・業者から紹介してもらうやり方 ② ○○ → {{NOTE_URL}}\n連載「1戸目の数字」の再生リスト → {{PLAYLIST_URL}}\n登場する物件・数字は説明のためのモデルケースです。個別のご相談・物件のご紹介は承っておりませんが、動画の内容への質問はここにどうぞ。48時間は全部返します。"

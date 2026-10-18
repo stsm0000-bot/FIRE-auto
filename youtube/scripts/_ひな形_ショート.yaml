@@ -1,0 +1,85 @@
+# ================================================================
+# ショートのひな形（v7。S002〜S004 を型にしたもの）。59 秒以内・縦 1080x1920
+# 使い方: コピーして「SNNN_題名.yaml」にし、○○ を埋める。長尺 1 本から 3 本切り出す（数字・失敗・確認の仕方）
+#   python pipeline\make_all.py scripts\S005_….yaml --tts stub   → 尺を見て、59 秒を超えたら台詞を削る
+# 守ること: 長尺のひな形の冒頭と同じ（モデルケース・禁止語・管理費・note へ送客・ポータルは言わない）
+# 型: 問い（0 秒）→ 数字 or 出来事 → 図解 1 枚 → 答え 1 行 → note か長尺へ。台詞は 12〜14 本
+# ================================================================
+id: "SNNN"
+kind: short
+title: "○○？ #不動産投資 #大家 #戸建て投資"
+question: "○○？"
+note_url: "https://note.com/dokechi_hudousan"
+disclaimer: "登場する物件・数字は説明のためのモデルケースです。個別のご相談・物件のご紹介は承っておりません"
+thumbnail: {big: "○○\n○○", sub: "モデルケース"}
+publish:
+  lead: "○○のモデルケース。○○を、説明のための数字で。"
+  tags: [不動産投資, 大家, 戸建て投資, Shorts]
+speakers:
+  聞: {speaker: "ずんだもん", style: "ノーマル", name: "ソウタ", color: "#2F80ED", char: "ソウタ"}
+  答: {speaker: "WhiteCUL", style: "ノーマル", name: "ユイさん", color: "#FF7A1A", char: "ユイさん",
+       style_map: {喜び: たのしい, 熱血: ノーマル, しっとり: ノーマル, かなしみ: かなしい, 不機嫌: ノーマル, 囁き: ノーマル}}
+voice: {speed: 1.1, intonation: 1.3}
+scenes:
+  - id: hook
+    layout: scene
+    bg: house_old
+    camera: in
+    chars:
+      - {who: ユイさん, at: center, act: point, face: happy}
+    props:
+      - {kind: headline, text: "○○", step: 1}       # ショートの見出しは 12 字くらいまで（長いと途中で改行される）
+      - {kind: price, text: "○○万円", at: right, step: 1}
+    steps: 1
+    lines:
+      - {sp: 答, text: "○○。○○？", step: 1, st: "喜び", face: happy}
+  - id: guess
+    layout: scene
+    bg: desk
+    time: night
+    camera: still
+    chars:
+      - {who: ソウタ, at: center, act: sit, face: happy}
+    props:
+      - {kind: bubble, text: "○○！", who: ソウタ, step: 1}
+      - {kind: sweat, who: ソウタ, step: 2}
+    steps: 2
+    lines:
+      - {sp: 聞, text: "○○なら、○○！", step: 1, st: "あまあま", face: happy}
+      - {sp: 聞, text: "……たぶん、そう甘くないですよね。", step: 2, st: "ノーマル", face: doubt}
+  - id: figure
+    layout: flow
+    heading: "○○（モデルケース）"
+    items:
+      - {text: "○○", value: "○○万円"}
+      - {text: "諸経費（管理費など）", value: "約○○万円", op: "−"}
+      - {text: "手残り", value: "約○○万円", op: "＝", sum: true}
+    lines:
+      - {sp: 答, text: "○○は、○○万円。", step: 1, mark: 1, st: "喜び"}
+      - {sp: 答, text: "管理費などの諸経費、約○○万円を引く。", step: 2, mark: 2}
+      - {sp: 答, text: "手残り、約○○万円。", step: 3, mark: 3, st: "喜び", pause: 0.5}
+  - id: answer
+    layout: scene
+    bg: bankbook
+    camera: in
+    chars:
+      - {who: ユイさん, at: center, act: stand, face: happy}
+    props:
+      - {kind: bubble, text: "○○", who: ユイさん, step: 1}
+    steps: 1
+    lines:
+      - {sp: 答, text: "○○。ただ、○○。", step: 1, st: "熱血", face: fire}
+  - id: ending
+    layout: ending
+    label: "続きは note で"                         # 長尺へ送る回は "続きは長尺で"
+    heading: "安い家の探し方・\n買い方は note に"
+    sub: "業者から紹介してもらうやり方も"
+    cta: "note は概要欄から ▶"
+    lines:
+      - {sp: 答, text: "安い家の探し方と買い方は、概要欄のnoteに。", st: "喜び"}
+      - {sp: 答, text: "○○の全部は、長尺で。登録して待っててください。", pause: 0.8}
+sns:
+  x_single:
+    - "○○？ モデルケースで計算すると、○○。60秒で。"
+  threads:
+    - "○○のモデルケース。○○。あなたなら、○○？"
