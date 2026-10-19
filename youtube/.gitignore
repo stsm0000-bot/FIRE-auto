@@ -9,3 +9,4 @@ scripts/photos/*
 !scripts/photos/写真の出どころ.md
 pipeline/node_modules/
 pipeline/package-lock.json
+channel/_work/

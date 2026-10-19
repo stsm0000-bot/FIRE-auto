@@ -1,0 +1,70 @@
+# チャンネル紹介（予告編）。登録していない人がチャンネルを開いたときに最初に流れる動画（docs/17 §4）
+# 長さは 40 秒前後（qa_duration で 30〜75 秒を合格にする）。横 1920x1080（長尺と同じ）
+# 中身: 何のチャンネルか（安い戸建ての数字をモデルケースで）→ 何が分かるか（買値→直し→家賃→管理費→手残り・よくある失敗）
+#       → いつ出るか（毎週土曜 7:00）→ 探し方・買い方は note → 登録
+id: "T001"
+kind: long
+qa_duration: [30, 75]
+title: "小規模な大家｜安い戸建ての数字を、モデルケースで"
+question: "このチャンネルで分かること"
+note_url: "https://note.com/dokechi_hudousan"
+disclaimer: "登場する物件・数字は説明のためのモデルケースです。個別のご相談・物件のご紹介は承っておりません"
+thumbnail:
+  big: "安い家の\n数字を全部"
+  sub: "モデルケースで"
+publish:
+  lead: "安い戸建てを直して貸す。その数字を、買値・直し・家賃・管理費・手残りの順に、モデルケースで出すチャンネルです。毎週土曜 7:00 更新。"
+  tags: [不動産投資, 大家, 戸建て投資, 小規模大家, 家賃収入]
+speakers:
+  聞: {speaker: "ずんだもん", style: "ノーマル", name: "ソウタ", color: "#2F80ED", char: "ソウタ"}
+  答: {speaker: "WhiteCUL", style: "ノーマル", name: "ユイさん", color: "#FF7A1A", char: "ユイさん",
+       style_map: {喜び: たのしい, 熱血: ノーマル, しっとり: ノーマル, かなしみ: かなしい, 不機嫌: ノーマル, 囁き: ノーマル}}
+voice: {speed: 1.1, intonation: 1.3}
+jingle: false
+
+scenes:
+  - id: hook
+    layout: scene
+    bg: house_old
+    time: day
+    camera: in
+    chars:
+      - {who: ソウタ, at: left, act: stand, face: surprised}
+      - {who: ユイさん, at: right, act: point, face: normal}
+    props:
+      - {kind: price, text: "買値 50万円", x: 50, x_fixed: true, step: 1}
+      - {kind: exclaim, who: ソウタ, step: 2}
+    steps: 2
+    lines:
+      - {sp: 答, text: "買値50万円の家を、家賃7万円で貸す。手元に、いくら残ると思います？", step: 1, st: "喜び", face: happy}
+      - {sp: 聞, text: "えっ、7万円まるごと、じゃないんですか？", step: 2, st: "あまあま", face: surprised}
+
+  - id: intro
+    layout: title
+    cast: true
+    heading: "不動産の仕入れと販売をしている\n大家のユイです"
+    sub: "数字は説明のためのモデルケース"
+    lines:
+      - {sp: 答, text: "不動産の仕入れと販売を仕事にしている大家、ユイです。", st: "ノーマル"}
+
+  - id: what
+    layout: list
+    heading: "このチャンネルで分かること"
+    items:
+      - {text: "買値から手残りまでの数字", note: "直し・家賃・管理費も"}
+      - {text: "よくある失敗とその金額", note: "見積りが膨らむ・空室"}
+      - {text: "毎週土曜 7:00 更新", note: "ショートは日・月・水"}
+    lines:
+      - {sp: 答, text: "安い戸建ての数字を、買値から手残りまで、モデルケースで出します。", step: 1, mark: 1, st: "ノーマル"}
+      - {sp: 答, text: "見積りが膨らむ、空室が続く。よくある失敗も、金額で。", step: 2, mark: 2, st: "ノーマル"}
+      - {sp: 聞, text: "毎週土曜の朝7時ですね。", step: 3, mark: 3, st: "あまあま", face: happy}
+
+  - id: ending
+    layout: ending
+    label: "続きは note で"
+    heading: "安い家の探し方・買い方・\n紹介してもらうやり方は note に"
+    sub: "動画は数字、note はやり方"
+    cta: "チャンネル登録と note は概要欄から ▶"
+    lines:
+      - {sp: 答, text: "探し方と買い方、紹介してもらうやり方は、noteにまとめています。", st: "喜び", face: happy}
+      - {sp: 聞, text: "チャンネル登録して、土曜の朝に会いましょう。", st: "あまあま", face: happy, pause: 0.8}

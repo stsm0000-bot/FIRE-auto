@@ -1140,7 +1140,7 @@ def build(script: Path, out_dir: Path, tts_mode: str, bgm: Path | None, bgm_db: 
     thumb = render_thumbnail(chrome, doc, out_dir)
     write_publish(doc, chapters, total, out_dir, thumb)
     print(f"完成: {out_mp4}")
-    qa(out_mp4, kind, stub=(tts_mode == "stub"), out_json=out_dir / "qa.json", warnings=warnings)
+    qa(out_mp4, kind, stub=(tts_mode == "stub"), out_json=out_dir / "qa.json", warnings=warnings, dur_range=doc.get("qa_duration"))
 
 # ---------------------------------------------------------------- 公開用メモ
 def fmt_ts(t: float) -> str:
@@ -1178,7 +1178,9 @@ def write_publish(doc: dict, chapters: list[tuple[float, str]], total: float, ou
     (out_dir / "publish.md").write_text("\n".join(md) + "\n", encoding="utf-8")
 
 # ---------------------------------------------------------------- 検査
-def qa(mp4: Path, kind: str | None = None, stub=False, out_json: Path | None = None, warnings: list[str] | None = None) -> bool:
+def qa(mp4: Path, kind: str | None = None, stub=False, out_json: Path | None = None, warnings: list[str] | None = None,
+       dur_range: list | None = None) -> bool:
+    """dur_range は台本の qa_duration（例 [30, 90]）。チャンネル紹介など、長尺・ショートの尺に当てはまらない動画用"""
     pr = run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height,r_frame_rate:format=duration",
               "-of", "json", str(mp4)])
     info = json.loads(pr.stdout)
@@ -1193,7 +1195,8 @@ def qa(mp4: Path, kind: str | None = None, stub=False, out_json: Path | None = N
     max_gap = max(gaps) if gaps else 0.0
     checks = {
         "解像度": ((w, h) == SIZES[kind], f"{w}x{h}（期待 {SIZES[kind][0]}x{SIZES[kind][1]}）"),
-        "尺": ((240 <= dur <= 660) if kind == "long" else (20 <= dur <= 59.5),
+        "尺": ((float(dur_range[0]) <= dur <= float(dur_range[1])) if dur_range else (240 <= dur <= 660) if kind == "long" else (20 <= dur <= 59.5),
+              f"{dur:.1f} 秒（この台本の指定 {dur_range[0]}〜{dur_range[1]} 秒）" if dur_range else
               f"{dur:.1f} 秒（長尺 4〜11 分・ミッドロール広告は 8 分以上{'' if kind != 'long' or dur >= 480 else '＝まだ入らない'} / ショート 20〜59 秒）"),
         "ラウドネス": ((lufs is not None and -15.5 <= lufs <= -12.5) or stub, f"{lufs} LUFS（目標 -14）" + ("  ※スタブ音声のため判定除外" if stub else "")),
         "無音の最大": ((max_gap <= 1.2) or stub, f"{max_gap:.2f} 秒（1.2 秒以下）" + ("  ※スタブ音声のため判定除外" if stub else "")),
