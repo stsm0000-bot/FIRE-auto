@@ -5,7 +5,7 @@
 - 作業場所は `C:\Users\stsm0\Desktop\FIRE-auto`（クラウドでは `/home/user/FIRE-auto`）。OneDrive は使わない。
 - 説明・文書・コミットメッセージは日本語。英語は極力使わない。質問はチェックボックス形式で。
 - ブランチは `claude/fervent-edison-ffigc4`。ほかのブランチに push しない。
-- 最初に読むのは `youtube/はじめに読む.md`。動画 1 本の手順は `youtube/docs/16_動画1本の作り方.md`（`/make-video` でも同じ流れ）。
+- 最初に読むのは `youtube/はじめに読む.md`（引き継ぎ書の本体）。成果物は `youtube/納品/`（ZIP を展開した物。Git に入れない）。動画 1 本の手順は `youtube/docs/16_動画1本の作り方.md`（`/make-video` でも同じ流れ）。
 
 ## 動画の決まり（変えない）
 

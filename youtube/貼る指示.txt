@@ -1,0 +1,6 @@
+C:\Users\stsm0\Desktop で作業します。OneDrive は使いません。日本語で書いてください。質問はチェックボックス形式でお願いします。
+1. C:\Users\stsm0\Desktop\FIRE-auto が無ければ git clone https://github.com/stsm0000-bot/FIRE-auto.git C:\Users\stsm0\Desktop\FIRE-auto を実行。あれば git fetch してください。どちらの場合もブランチ claude/fervent-edison-ffigc4 に切り替えて git pull してください。
+2. C:\Users\stsm0\Desktop\FIRE-auto\youtube\はじめに読む.md を全部読んでください。これが引き継ぎ書の本体です。
+3. 成果物の ZIP「小規模な大家_成果物_2026-10-20.zip」を C:\Users\stsm0\Desktop か ダウンロード フォルダから探して、C:\Users\stsm0\Desktop\FIRE-auto\youtube\納品\ に展開し、中身がそろっているか一覧で見せてください（はじめに読む §1 の表と照らし合わせて）。
+4. はじめに読む §3 の環境チェックを実行して、足りない物を教えてください（インストールは私の了解を取ってから）。
+5. そのあと、はじめに読む §4 のやることリストを上から順に、私と一緒に進めてください。
